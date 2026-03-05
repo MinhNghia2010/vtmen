@@ -42,7 +42,7 @@ public class OrderService {
     public List<OrderModel> searchHistory(String date, String name, String phone, Integer quantity,
             String orderCode) {
         Query query = new Query();
-        query.addCriteria(Criteria.where("status").is("delivered"));
+        query.addCriteria(Criteria.where("status").in("delivered", "cancelled"));
 
         if (date != null && !date.isEmpty()) {
             LocalDate d = LocalDate.parse(date);
