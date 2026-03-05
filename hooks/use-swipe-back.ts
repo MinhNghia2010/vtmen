@@ -23,6 +23,14 @@ export function useSwipeBack(fallbackUrl?: string) {
             const deltaX = touchEndX - touchStartX.current;
             const deltaY = touchEndY - touchStartY.current;
 
+            // Helper to set flag before navigation
+            const navigate = (action: () => void) => {
+                try {
+                    sessionStorage.setItem('is_swipe_navigation', 'true');
+                } catch (err) { }
+                action();
+            };
+
             // Right swipe for back navigation (or left swipe if user explicitly meant it, but right swipe is standard).
             // Many users say "swipe left" meaning "swipe the previous page back in" from the left.
             // We'll support a standard right swipe (finger moves right, deltaX > 75).
@@ -30,19 +38,21 @@ export function useSwipeBack(fallbackUrl?: string) {
             if (deltaX > 75 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
                 // If it started near the left edge (optional but good for preventing conflicts)
                 if (touchStartX.current < 100) {
-                    if (window.history.length > 2) {
-                        router.back();
-                    } else if (fallbackUrl) {
-                        router.replace(fallbackUrl);
-                    } else {
-                        router.back();
-                    }
+                    navigate(() => {
+                        if (window.history.length > 2) {
+                            router.back();
+                        } else if (fallbackUrl) {
+                            router.replace(fallbackUrl);
+                        } else {
+                            router.back();
+                        }
+                    });
                 }
             } else if (deltaX < -75 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
                 // Left swipe (moving finger left) for forward navigation
                 // Typically starts near the right edge
                 if (window.innerWidth - touchStartX.current < 100) {
-                    router.forward();
+                    navigate(() => router.forward());
                 }
             }
         };

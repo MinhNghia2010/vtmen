@@ -15,6 +15,7 @@ import { Truck, Clock, Package, CheckCircle2, XCircle } from "lucide-react"
 import { statusLabels, type OrderStatus, type Order } from "@/lib/orders"
 import { useState, useEffect } from "react"
 import { fetchActiveOrders } from "@/lib/api"
+import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 const statusStyles: Record<OrderStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
@@ -33,6 +34,7 @@ const statusIcons: Record<OrderStatus, React.ReactNode> = {
 }
 
 export default function OrderCard() {
+    useScrollRestoration();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 

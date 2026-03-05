@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { statusLabels, type Order, type OrderStatus } from "@/lib/orders";
 import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { useState, useEffect } from "react";
+import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 function getStatusIcon(status: OrderStatus) {
     switch (status) {
@@ -137,6 +138,7 @@ function OrderCardItem({ order, index }: { order: Order; index: number }) {
 }
 
 export default function UserOrderList() {
+    useScrollRestoration();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
