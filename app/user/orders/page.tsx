@@ -8,7 +8,7 @@ import { useSwipeBack } from "@/hooks/use-swipe-back";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
-    useSwipeBack('/app');
+    useSwipeBack('/');
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">
