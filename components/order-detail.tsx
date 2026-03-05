@@ -6,6 +6,7 @@ import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { notFound, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSwipeBack } from "@/hooks/use-swipe-back";
 
 const statusStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -25,6 +26,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function OrderDetail({ orderId }: { orderId: string }) {
     const router = useRouter();
+    useSwipeBack('/postman/orders');
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -64,7 +66,13 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     <h2 className="text-lg font-semibold text-foreground">Không tìm thấy đơn hàng</h2>
                     <button
                         className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                        onClick={() => router.back()}
+                        onClick={() => {
+                            if (window.history.length > 2) {
+                                router.back();
+                            } else {
+                                router.replace('/postman/orders');
+                            }
+                        }}
                     >
                         Quay lại
                     </button>
@@ -76,7 +84,13 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={() => router.back()}
+                                    onClick={() => {
+                                        if (window.history.length > 2) {
+                                            router.back();
+                                        } else {
+                                            router.replace('/postman/orders');
+                                        }
+                                    }}
                                     className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:border-primary hover:text-primary"
                                     aria-label="Go back"
                                 >

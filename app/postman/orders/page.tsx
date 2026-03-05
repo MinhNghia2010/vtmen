@@ -5,9 +5,11 @@ import OrderCard from "@/components/order-card";
 import CreateOrderDrawer from "@/components/create-order-drawer";
 import { TruckElectric, RefreshCw, History } from "lucide-react";
 import { useState } from "react";
+import { useSwipeBack } from "@/hooks/use-swipe-back";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
+    useSwipeBack('/app');
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">
