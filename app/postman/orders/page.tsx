@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import OrderCard from "@/components/order-card";
 import CreateOrderDrawer from "@/components/create-order-drawer";
-import { TruckElectric , RefreshCw } from "lucide-react";
+import { TruckElectric, RefreshCw, History } from "lucide-react";
 import { useState } from "react";
 
 export default function Page() {
@@ -23,6 +24,13 @@ export default function Page() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
+                        <Link
+                            href="/postman/history"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-muted-foreground transition-all hover:border-primary/50 hover:text-primary active:scale-95"
+                            aria-label="Lịch sử"
+                        >
+                            <History className="h-4 w-4" />
+                        </Link>
                         <button
                             onClick={() => setRefreshKey((k) => k + 1)}
                             className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-muted-foreground transition-all hover:border-primary/50 hover:text-primary active:scale-95"
