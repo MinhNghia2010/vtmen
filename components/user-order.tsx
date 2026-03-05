@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/item";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { orders, statusLabels, type Order, type OrderStatus } from "@/lib/orders";
+import { statusLabels, type Order, type OrderStatus } from "@/lib/orders";
+import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
+import { useState, useEffect } from "react";
 
 function getStatusIcon(status: OrderStatus) {
     switch (status) {
@@ -135,10 +137,44 @@ function OrderCardItem({ order, index }: { order: Order; index: number }) {
 }
 
 export default function UserOrderList() {
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            try {
+                // Fetch active orders 
+                const data = await fetchActiveOrders();
+                setOrders(data);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+    }, []);
+
     return (
         <div className="mx-auto w-full max-w-md px-4 pb-6">
             <ItemGroup className="gap-3">
-                {orders.length === 0 ? (
+                {loading ? (
+                    <>
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={i} className="flex flex-col gap-0 rounded-xl border border-border/50 p-0 animate-pulse">
+                                <div className="flex items-center gap-3 p-3.5">
+                                    <div className="h-10 w-10 rounded-xl bg-muted" />
+                                    <div className="flex-1 space-y-2">
+                                        <div className="h-4 w-2/3 rounded-lg bg-muted" />
+                                        <div className="h-3 w-1/3 rounded-lg bg-muted" />
+                                    </div>
+                                    <div className="h-6 w-16 rounded-full bg-muted" />
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                ) : orders.length === 0 ? (
                     <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
                         <Package className="h-12 w-12 opacity-30" />
                         <p className="text-sm">No orders found</p>

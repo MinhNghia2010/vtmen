@@ -1,9 +1,11 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
-import { orders, type Order } from "@/lib/orders";
+import { type Order } from "@/lib/orders";
+import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { notFound, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const statusStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -23,66 +25,107 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 export default function OrderDetail({ orderId }: { orderId: string }) {
     const router = useRouter();
-    const order = orders.find((o) => o.maDonHang === orderId);
+    const [order, setOrder] = useState<Order | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    if (!order) {
-        notFound();
-    }
+    useEffect(() => {
+        async function loadOrder() {
+            setLoading(true);
+            try {
+                // Wait for the slide animation to finish (300ms) before fetching
+                await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const qrData = JSON.stringify({
-        maDonHang: order.maDonHang,
-        sanPham: order.sanPham,
-        tenKhachHang: order.tenKhachHang,
-        sdt: order.sdt,
-        diaChi: order.diaChi,
-        trangThai: order.trangThai,
-    });
+                const [active, history] = await Promise.all([
+                    fetchActiveOrders(),
+                    fetchOrderHistory()
+                ]);
+                const allOrders = [...active, ...history];
+                const found = allOrders.find((o) => o.maDonHang === orderId);
+                if (found) {
+                    setOrder(found);
+                }
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadOrder();
+    }, [orderId]);
 
     return (
-        <div className="flex min-h-screen flex-col items-center bg-background p-6">
-            <div className="w-full max-w-md space-y-6">
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center gap-1 text-sm text-muted-foreground hover:underline hover:text-foreground transition-colors animate-in fade-in slide-in-from-left-2"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Back to orders
-                </button>
-                {/* Header */}
-                <div className="text-center space-y-1 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: "50ms", animationFillMode: "both" }}>
-                    <h1 className="text-2xl font-bold text-foreground">
-                        Order {order.maDonHang}
-                    </h1>
-                    <span
-                        className={`inline-block rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[order.trangThai] ?? "bg-muted text-muted-foreground"}`}
+        <div className="flex-1 px-4 pt-4 pb-6 animate-in slide-in-from-right fade-in duration-300 fill-mode-both">
+            {loading ? (
+                <div className="flex h-[60vh] items-center justify-center text-muted-foreground animate-pulse">
+                    Đang tải dữ liệu...
+                </div>
+            ) : !order ? (
+                <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                    <h2 className="text-lg font-semibold text-foreground">Không tìm thấy đơn hàng</h2>
+                    <button
+                        className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        onClick={() => router.back()}
                     >
-                        {order.trangThai}
-                    </span>
+                        Quay lại
+                    </button>
                 </div>
+            ) : (
+                <div className="space-y-5 animate-in fade-in duration-500">
+                    {/* Header */}
+                    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: "50ms", animationFillMode: "both" }}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => router.back()}
+                                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card transition-colors hover:border-primary hover:text-primary"
+                                    aria-label="Go back"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                </button>
+                                <h1 className="text-lg font-bold text-foreground">
+                                    Order &quot;<span className="text-primary">{order.maDonHang}</span>&quot;
+                                </h1>
+                            </div>
+                            <span
+                                className={`inline-block rounded-full px-3 py-1 text-xs font-semibold capitalize ${statusStyles[order.trangThai] ?? "bg-muted text-muted-foreground"}`}
+                            >
+                                {order.trangThai}
+                            </span>
+                        </div>
+                    </div>
 
-                {/* QR Code */}
-                <div className="flex justify-center rounded-xl border border-border bg-white p-6 shadow-sm animate-in fade-in zoom-in-95" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
-                    <QRCodeSVG
-                        value={qrData}
-                        size={200}
-                        level="H"
-                        includeMargin
-                    />
-                </div>
+                    {/* QR Code */}
+                    <div className="flex justify-center rounded-xl border border-border bg-white p-6 shadow-sm animate-in fade-in zoom-in-95" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
+                        <QRCodeSVG
+                            value={order ? JSON.stringify({
+                                maDonHang: order.maDonHang,
+                                sanPham: order.sanPham,
+                                tenKhachHang: order.tenKhachHang,
+                                sdt: order.sdt,
+                                diaChi: order.diaChi,
+                                trangThai: order.trangThai,
+                            }) : ""}
+                            size={200}
+                            level="H"
+                            includeMargin
+                        />
+                    </div>
 
-                {/* Order Info */}
-                <div className="rounded-xl border border-border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-bottom-3" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
-                    <h2 className="mb-2 text-base font-semibold text-foreground">
-                        Order Information
-                    </h2>
-                    <InfoRow label="Order ID" value={order.maDonHang} />
-                    <InfoRow label="Product" value={order.sanPham} />
-                    <InfoRow label="Customer" value={order.tenKhachHang} />
-                    <InfoRow label="Phone" value={order.sdt} />
-                    <InfoRow label="Address" value={order.diaChi} />
-                    <InfoRow label="Status" value={order.trangThai} />
+                    {/* Order Info */}
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-bottom-3" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
+                        <h2 className="mb-2 text-base font-semibold text-foreground">
+                            Order Information
+                        </h2>
+                        <InfoRow label="Order ID" value={order.maDonHang} />
+                        <InfoRow label="Product" value={order.sanPham} />
+                        <InfoRow label="Quantity" value={order.soLuong?.toString() || "1"} />
+                        <InfoRow label="Customer" value={order.tenKhachHang} />
+                        <InfoRow label="Phone" value={order.sdt} />
+                        <InfoRow label="Address" value={order.diaChi} />
+                        <InfoRow label="Status" value={order.trangThai} />
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

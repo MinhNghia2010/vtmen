@@ -1,0 +1,52 @@
+package com.vtmen.backend.controller;
+
+import com.vtmen.backend.model.OrderModel;
+import com.vtmen.backend.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/orders")
+@CrossOrigin(origins = "*")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    // GET /api/orders/active — Active orders (non-delivered, non-cancelled)
+    @GetMapping("/active")
+    public List<OrderModel> getActiveOrders() {
+        return orderService.getActiveOrders();
+    }
+
+    // GET /api/orders/history — Search delivered orders
+    @GetMapping("/history")
+    public List<OrderModel> searchHistory(
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) Integer quantity,
+            @RequestParam(required = false) String orderCode) {
+        return orderService.searchHistory(date, name, phone, quantity, orderCode);
+    }
+
+    // GET /api/orders — All orders
+    @GetMapping
+    public List<OrderModel> getAllOrders() {
+        return orderService.getAllOrders();
+    }
+
+    // POST /api/orders/create — Create a new order
+    @PostMapping("/create")
+    public OrderModel createOrder(@RequestBody OrderModel order) {
+        return orderService.createOrder(order);
+    }
+
+    // POST /api/orders/{id}/complete — Mark order as delivered
+    @PostMapping("/{id}/complete")
+    public void completeOrder(@PathVariable String id) {
+        orderService.completeOrder(id);
+    }
+}
