@@ -8,6 +8,8 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
 
+import { useAnimations } from "@/contexts/animation-context";
+
 const statusStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
     shipping: "bg-blue-100 text-blue-800",
@@ -27,6 +29,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 export default function OrderDetail({ orderId }: { orderId: string }) {
     const router = useRouter();
     useSwipeBack('/postman/orders');
+    const { animationsEnabled } = useAnimations();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -35,7 +38,9 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
             setLoading(true);
             try {
                 // Wait for the slide animation to finish (300ms) before fetching
-                await new Promise((resolve) => setTimeout(resolve, 300));
+                if (animationsEnabled) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
 
                 const [active, history] = await Promise.all([
                     fetchActiveOrders(),
@@ -53,12 +58,12 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
             }
         }
         loadOrder();
-    }, [orderId]);
+    }, [orderId, animationsEnabled]);
 
     return (
-        <div className="flex-1 px-4 pt-4 pb-6 animate-in slide-in-from-right fade-in duration-300 fill-mode-both">
+        <div className={`flex-1 px-4 pt-4 pb-6 ${animationsEnabled ? 'animate-in slide-in-from-right fade-in duration-300 fill-mode-both' : ''}`}>
             {loading ? (
-                <div className="flex h-[60vh] items-center justify-center text-muted-foreground animate-pulse">
+                <div className={`flex h-[60vh] items-center justify-center text-muted-foreground ${animationsEnabled ? 'animate-pulse' : ''}`}>
                     Đang tải dữ liệu...
                 </div>
             ) : !order ? (
@@ -78,9 +83,9 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     </button>
                 </div>
             ) : (
-                <div className="space-y-5 animate-in fade-in duration-500">
+                <div className={`space-y-5 ${animationsEnabled ? 'animate-in fade-in duration-500' : ''}`}>
                     {/* Header */}
-                    <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-2" style={{ animationDelay: "50ms", animationFillMode: "both" }}>
+                    <div className={`flex flex-col gap-4 ${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-2' : ''}`} style={animationsEnabled ? { animationDelay: "50ms", animationFillMode: "both" } : undefined}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <button
@@ -109,7 +114,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     </div>
 
                     {/* QR Code */}
-                    <div className="flex justify-center rounded-xl border border-border bg-white p-6 shadow-sm animate-in fade-in zoom-in-95" style={{ animationDelay: "150ms", animationFillMode: "both" }}>
+                    <div className={`flex justify-center rounded-xl border border-border bg-white p-6 shadow-sm ${animationsEnabled ? 'animate-in fade-in zoom-in-95' : ''}`} style={animationsEnabled ? { animationDelay: "150ms", animationFillMode: "both" } : undefined}>
                         <QRCodeSVG
                             value={order ? JSON.stringify({
                                 maDonHang: order.maDonHang,
@@ -126,7 +131,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     </div>
 
                     {/* Order Info */}
-                    <div className="rounded-xl border border-border bg-card p-4 shadow-sm animate-in fade-in slide-in-from-bottom-3" style={{ animationDelay: "250ms", animationFillMode: "both" }}>
+                    <div className={`rounded-xl border border-border bg-card p-4 shadow-sm ${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-3' : ''}`} style={animationsEnabled ? { animationDelay: "250ms", animationFillMode: "both" } : undefined}>
                         <h2 className="mb-2 text-base font-semibold text-foreground">
                             Order Information
                         </h2>

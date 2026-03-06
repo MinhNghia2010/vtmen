@@ -5,10 +5,12 @@ import CreateOrderDrawer from "@/components/create-order-drawer";
 import { Package, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
+import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
     useSwipeBack('/');
+    useScrollRestoration();
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">

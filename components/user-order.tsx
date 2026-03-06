@@ -55,7 +55,9 @@ function getStatusBadgeStyle(status: OrderStatus) {
     }
 }
 
-function OrderCardItem({ order, index }: { order: Order; index: number }) {
+import { useAnimations } from "@/contexts/animation-context";
+
+function OrderCardItem({ order, index, animate }: { order: Order; index: number; animate: boolean }) {
     const handleCallDelivery = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -76,8 +78,8 @@ function OrderCardItem({ order, index }: { order: Order; index: number }) {
         <Item
             variant="outline"
             role="listitem"
-            className="flex-col gap-0 p-0 animate-in fade-in slide-in-from-bottom-2 transition-all duration-200 hover:border-primary/70"
-            style={{ animationDelay: `${index * 50}ms`, animationFillMode: "both" }}
+            className={`flex-col gap-0 p-0 ${animate ? 'animate-in fade-in slide-in-from-bottom-2' : ''} transition-all duration-200 hover:border-primary/70`}
+            style={animate ? { animationDelay: `${index * 50}ms`, animationFillMode: "both" } : undefined}
         >
             {/* Main content — clickable link */}
             <Item
@@ -139,6 +141,7 @@ function OrderCardItem({ order, index }: { order: Order; index: number }) {
 
 export default function UserOrderList() {
     useScrollRestoration();
+    const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -164,7 +167,7 @@ export default function UserOrderList() {
                 {loading ? (
                     <>
                         {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="flex flex-col gap-0 rounded-xl border border-border/50 p-0 animate-pulse">
+                            <div key={i} className={`flex flex-col gap-0 rounded-xl border border-border/50 p-0 ${animationsEnabled ? 'animate-pulse' : ''}`}>
                                 <div className="flex items-center gap-3 p-3.5">
                                     <div className="h-10 w-10 rounded-xl bg-muted" />
                                     <div className="flex-1 space-y-2">
@@ -183,7 +186,7 @@ export default function UserOrderList() {
                     </div>
                 ) : (
                     orders.map((order, idx) => (
-                        <OrderCardItem key={order.maDonHang} order={order} index={idx} />
+                        <OrderCardItem key={order.maDonHang} order={order} index={idx} animate={animationsEnabled} />
                     ))
                 )}
             </ItemGroup>

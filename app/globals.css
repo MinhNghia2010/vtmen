@@ -126,8 +126,13 @@
   }
 }
 
-/* Disable initial view animations for swipe navigations */
-.disable-animations * {
+/* 
+  Global swipe navigation flag placed on body.
+  We specifically target the .animate-in classes and disable them permanently. 
+  It is only removed when the user taps on the screen again for a new interaction.
+*/
+body.is-swipe-nav .animate-in {
   animation: none !important;
-  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }

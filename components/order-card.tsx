@@ -16,6 +16,7 @@ import { statusLabels, type OrderStatus, type Order } from "@/lib/orders"
 import { useState, useEffect } from "react"
 import { fetchActiveOrders } from "@/lib/api"
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
+import { useAnimations } from "@/contexts/animation-context";
 
 const statusStyles: Record<OrderStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
@@ -35,6 +36,7 @@ const statusIcons: Record<OrderStatus, React.ReactNode> = {
 
 export default function OrderCard() {
     useScrollRestoration();
+    const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -59,7 +61,7 @@ export default function OrderCard() {
                 {loading ? (
                     <>
                         {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-3 rounded-xl border border-border/50 p-3.5 animate-pulse">
+                            <div key={i} className={`flex items-center gap-3 rounded-xl border border-border/50 p-3.5 ${animationsEnabled ? 'animate-pulse' : ''}`}>
                                 <div className="h-10 w-10 rounded-xl bg-muted" />
                                 <div className="flex-1 space-y-2">
                                     <div className="h-4 w-2/3 rounded-lg bg-muted" />
@@ -81,8 +83,8 @@ export default function OrderCard() {
                             variant="outline"
                             role="listitem"
                             render={<Link href={`orders/${order.maDonHang}`} />}
-                            className="animate-in fade-in slide-in-from-bottom-2 transition-all duration-200 hover:border-primary/70"
-                            style={{ animationDelay: `${idx * 50}ms`, animationFillMode: "both" }}
+                            className={`${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-2' : ''} transition-all duration-200 hover:border-primary/70`}
+                            style={animationsEnabled ? { animationDelay: `${idx * 50}ms`, animationFillMode: "both" } : undefined}
                         >
                             <ItemMedia variant="icon">
                                 <Truck className="h-5 w-5 text-primary" />

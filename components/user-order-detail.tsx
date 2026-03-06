@@ -8,6 +8,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
 
+import { useAnimations } from "@/contexts/animation-context";
+
 const trackingSteps = [
     { key: "pending", label: "Đơn hàng đang chờ", icon: Clock },
     { key: "placed", label: "Đã gửi vào tủ", icon: Package },
@@ -27,6 +29,7 @@ function getStepStatus(orderStatus: string, stepKey: string) {
 export default function UserOrderDetail({ orderId }: { orderId: string }) {
     const router = useRouter();
     useSwipeBack('/user/orders');
+    const { animationsEnabled } = useAnimations();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [showQR, setShowQR] = useState(false);
@@ -36,7 +39,9 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
             setLoading(true);
             try {
                 // Wait for the slide animation to finish (300ms) before fetching
-                await new Promise((resolve) => setTimeout(resolve, 300));
+                if (animationsEnabled) {
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                }
 
                 const [active, history] = await Promise.all([
                     fetchActiveOrders(),
@@ -54,7 +59,7 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
             }
         }
         loadOrder();
-    }, [orderId]);
+    }, [orderId, animationsEnabled]);
 
     const handleCallDelivery = () => {
         if (!order) return;
@@ -65,9 +70,9 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
     };
 
     return (
-        <div className="flex-1 px-4 pt-4 pb-6 animate-in slide-in-from-right fade-in duration-300 fill-mode-both">
+        <div className={`flex-1 px-4 pt-4 pb-6 ${animationsEnabled ? 'animate-in slide-in-from-right fade-in duration-300 fill-mode-both' : ''}`}>
             {loading ? (
-                <div className="flex h-[60vh] items-center justify-center text-muted-foreground animate-pulse">
+                <div className={`flex h-[60vh] items-center justify-center text-muted-foreground ${animationsEnabled ? 'animate-pulse' : ''}`}>
                     Đang tải dữ liệu...
                 </div>
             ) : !order ? (
@@ -89,7 +94,7 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                     </button>
                 </div>
             ) : (
-                <div className="space-y-5 animate-in fade-in duration-500">
+                <div className={`space-y-5 ${animationsEnabled ? 'animate-in fade-in duration-500' : ''}`}>
                     {/* Header */}
                     <div className="flex items-center gap-3">
                         <button
@@ -151,8 +156,8 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                             return (
                                 <div
                                     key={step.key}
-                                    className="flex gap-4 animate-in fade-in slide-in-from-left-2"
-                                    style={{ animationDelay: `${idx * 100}ms`, animationFillMode: "both" }}
+                                    className={`flex gap-4 ${animationsEnabled ? 'animate-in fade-in slide-in-from-left-2' : ''}`}
+                                    style={animationsEnabled ? { animationDelay: `${idx * 100}ms`, animationFillMode: "both" } : undefined}
                                 >
                                     {/* Dot + Line */}
                                     <div className="flex flex-col items-center">
@@ -230,7 +235,7 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                                     )}
                                 </>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 rounded-xl border border-primary/20 bg-primary/5 p-6 animate-in fade-in zoom-in-95">
+                                <div className={`flex flex-col items-center gap-4 rounded-xl border border-primary/20 bg-primary/5 p-6 ${animationsEnabled ? 'animate-in fade-in zoom-in-95' : ''}`}>
                                     <p className="text-sm font-medium text-primary">Đưa mã QR này cho robot để mở tủ</p>
                                     <div className="rounded-xl bg-white p-4 shadow-md">
                                         <QRCodeSVG

@@ -17,6 +17,8 @@ import { useState, useEffect } from "react";
 import { fetchOrderHistory } from "@/lib/api";
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
+import { useAnimations } from "@/contexts/animation-context";
+
 const statusStyles: Record<OrderStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
     placed: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
@@ -34,8 +36,8 @@ const statusIcons: Record<OrderStatus, React.ReactNode> = {
 };
 
 export default function OrderHistory() {
-    console.log('[DEBUG] Rendering OrderHistory');
     useScrollRestoration();
+    const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -60,7 +62,7 @@ export default function OrderHistory() {
                 {loading ? (
                     <>
                         {Array.from({ length: 3 }).map((_, i) => (
-                            <div key={i} className="flex items-center gap-3 rounded-xl border border-border/50 p-3.5 animate-pulse">
+                            <div key={i} className={`flex items-center gap-3 rounded-xl border border-border/50 p-3.5 ${animationsEnabled ? 'animate-pulse' : ''}`}>
                                 <div className="h-10 w-10 rounded-xl bg-muted" />
                                 <div className="flex-1 space-y-2">
                                     <div className="h-4 w-2/3 rounded-lg bg-muted" />
@@ -82,8 +84,8 @@ export default function OrderHistory() {
                             variant="outline"
                             role="listitem"
                             render={<Link href={`/postman/orders/${order.maDonHang}`} />}
-                            className="animate-in fade-in slide-in-from-bottom-2 transition-all duration-200 hover:border-primary/70"
-                            style={{ animationDelay: `${idx * 50}ms`, animationFillMode: "both" }}
+                            className={`${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-2' : ''} transition-all duration-200 hover:border-primary/70`}
+                            style={animationsEnabled ? { animationDelay: `${idx * 50}ms`, animationFillMode: "both" } : undefined}
                         >
                             <ItemMedia variant="icon">
                                 {order.trangThai === "delivered" ? (

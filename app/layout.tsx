@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-import { PageTransition } from "@/components/page-transition";
+import { AnimationProvider } from "@/contexts/animation-context";
 
 export default function RootLayout({
   children,
@@ -38,9 +38,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PageTransition>
+        <AnimationProvider>
           {children}
-        </PageTransition>
+        </AnimationProvider>
       </body>
     </html>
   );
