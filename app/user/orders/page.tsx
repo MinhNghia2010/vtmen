@@ -6,19 +6,11 @@ import { Package, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
-import { useAnimations } from "@/contexts/animation-context";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
-    const { enableAnimations } = useAnimations();
-
     useSwipeBack('/');
     useScrollRestoration();
-
-    const handleRefresh = () => {
-        enableAnimations();
-        setRefreshKey((k) => k + 1);
-    };
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">
@@ -36,13 +28,13 @@ export default function Page() {
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            onClick={handleRefresh}
+                            onClick={() => setRefreshKey((k) => k + 1)}
                             className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-muted-foreground transition-all hover:border-primary/50 hover:text-primary active:scale-95"
                             aria-label="Làm mới"
                         >
                             <RefreshCw className="h-4 w-4" />
                         </button>
-                        <CreateOrderDrawer onCreated={handleRefresh} />
+                        <CreateOrderDrawer onCreated={() => setRefreshKey((k) => k + 1)} />
                     </div>
                 </div>
             </div>

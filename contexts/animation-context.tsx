@@ -6,13 +6,11 @@ import { usePathname } from "next/navigation";
 type AnimationContextType = {
     animationsEnabled: boolean;
     disableAnimations: () => void;
-    enableAnimations: () => void;
 };
 
 const AnimationContext = createContext<AnimationContextType>({
     animationsEnabled: true,
     disableAnimations: () => { },
-    enableAnimations: () => { },
 });
 
 export function AnimationProvider({ children }: { children: ReactNode }) {
@@ -39,12 +37,8 @@ export function AnimationProvider({ children }: { children: ReactNode }) {
         setAnimationsEnabled(false);
     };
 
-    const enableAnimations = () => {
-        setAnimationsEnabled(true);
-    };
-
     return (
-        <AnimationContext.Provider value={{ animationsEnabled, disableAnimations, enableAnimations }}>
+        <AnimationContext.Provider value={{ animationsEnabled, disableAnimations }}>
             {children}
         </AnimationContext.Provider>
     );
