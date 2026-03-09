@@ -3,11 +3,13 @@ package com.vtmen.backend.service;
 import com.vtmen.backend.model.OrderModel;
 import com.vtmen.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,7 +26,13 @@ public class OrderService {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${notify.backend.url}")
+    private String notifyBackendUrl;
 
     // Get active (non-completed, non-cancelled) orders
     public List<OrderModel> getActiveOrders() {
@@ -40,7 +48,7 @@ public class OrderService {
             order.setCompletedTime(LocalDateTime.now());
             orderRepository.save(order);
         });
-        messagingTemplate.convertAndSend("/topic/orders", getActiveOrders());
+        redisTemplate.convertAndSend("order_topic", "REFRESH");
     }
 
     // Search completed/all orders with filters
@@ -77,7 +85,14 @@ public class OrderService {
         // Generate order code like SK + 8 digits
         order.setOrderCode("SK" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase());
         OrderModel saved = orderRepository.save(order);
-        messagingTemplate.convertAndSend("/topic/orders", getActiveOrders());
+        redisTemplate.convertAndSend("order_topic", "REFRESH");
+        // Notify the other backend (localhost:8081) so it can alert its clients
+        try {
+            restTemplate.postForEntity(notifyBackendUrl, saved, String.class);
+            System.out.println("[Notify] Sent order to " + notifyBackendUrl);
+        } catch (Exception e) {
+            System.err.println("[Notify] Could not reach " + notifyBackendUrl + ": " + e.getMessage());
+        }
         return saved;
     }
 

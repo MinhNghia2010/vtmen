@@ -3,7 +3,12 @@
     "allow": [
       "Bash(npm install @stomp/stompjs sockjs-client)",
       "Bash(npm install --save-dev @types/sockjs-client)",
-      "Bash(npx tsc --noEmit)"
+      "Bash(npx tsc --noEmit)",
+      "Bash(curl -s \"http://localhost:3000\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(node -e \":*)",
+      "Bash(curl -s \"http://localhost:8080/api/orders/active\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s \"http://localhost:3000/ws/info\" -o /dev/null -w \"%{http_code}\")",
+      "Bash(curl -s \"http://localhost:8080/ws/info\" -w \"\\\\nHTTP: %{http_code}\")"
     ]
   }
 }

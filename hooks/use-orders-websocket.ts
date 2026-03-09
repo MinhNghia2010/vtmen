@@ -10,7 +10,7 @@ import { Order } from "@/lib/orders";
 const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || 
   (typeof window !== 'undefined' && window.location.protocol === 'https:' 
     ? "https://vtmen-production.up.railway.app" 
-    : "http://localhost:8080"); // Đổi port 8081 theo backend local của bạn
+    : "http://localhost:8080");
 
 export function useOrdersWebSocket(onUpdate: (orders: Order[]) => void) {
     const [connected, setConnected] = useState(false);

@@ -31,7 +31,7 @@ export function mapBackendOrderToFrontend(b: BackendOrder): Order {
     };
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
 export async function fetchActiveOrders(): Promise<Order[]> {
     try {
