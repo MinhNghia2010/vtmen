@@ -6,7 +6,11 @@ import SockJS from "sockjs-client";
 import { BackendOrder, mapBackendOrderToFrontend } from "@/lib/api";
 import { Order } from "@/lib/orders";
 
-const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:8080";
+// Nếu có biến môi trường thì dùng, nếu không thì tự động kiểm tra xem trang web đang chạy https hay http
+const WS_BASE = process.env.NEXT_PUBLIC_WS_URL || 
+  (typeof window !== 'undefined' && window.location.protocol === 'https:' 
+    ? "https://vtmen-production.up.railway.app" 
+    : "http://localhost:8080"); // Đổi port 8081 theo backend local của bạn
 
 export function useOrdersWebSocket(onUpdate: (orders: Order[]) => void) {
     const [connected, setConnected] = useState(false);

@@ -10,7 +10,7 @@ import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
-    useSwipeBack('/app');
+    useSwipeBack('/');
     useScrollRestoration();
 
     return (
