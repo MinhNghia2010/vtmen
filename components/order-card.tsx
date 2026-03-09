@@ -17,6 +17,7 @@ import { useState, useEffect } from "react"
 import { fetchActiveOrders } from "@/lib/api"
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 import { useAnimations } from "@/contexts/animation-context";
+import { useOrdersWebSocket } from "@/hooks/use-orders-websocket";
 
 const statusStyles: Record<OrderStatus, string> = {
     pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
@@ -40,6 +41,7 @@ export default function OrderCard() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Initial fetch
     useEffect(() => {
         async function loadData() {
             setLoading(true);
@@ -54,6 +56,12 @@ export default function OrderCard() {
         }
         loadData();
     }, []);
+
+    // Real-time updates via WebSocket
+    useOrdersWebSocket((updatedOrders) => {
+        setOrders(updatedOrders);
+        setLoading(false);
+    });
 
     return (
         <div className="flex w-full max-w-md flex-col gap-6 px-4">

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install @stomp/stompjs sockjs-client)",
+      "Bash(npm install --save-dev @types/sockjs-client)",
+      "Bash(npx tsc --noEmit)"
+    ]
+  }
+}

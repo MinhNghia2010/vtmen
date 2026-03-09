@@ -24,6 +24,7 @@ import { statusLabels, type Order, type OrderStatus } from "@/lib/orders";
 import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
+import { useOrdersWebSocket } from "@/hooks/use-orders-websocket";
 
 function getStatusIcon(status: OrderStatus) {
     switch (status) {
@@ -145,11 +146,11 @@ export default function UserOrderList() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Initial fetch
     useEffect(() => {
         async function loadData() {
             setLoading(true);
             try {
-                // Fetch active orders 
                 const data = await fetchActiveOrders();
                 setOrders(data);
             } catch (err) {
@@ -160,6 +161,12 @@ export default function UserOrderList() {
         }
         loadData();
     }, []);
+
+    // Real-time updates via WebSocket
+    useOrdersWebSocket((updatedOrders) => {
+        setOrders(updatedOrders);
+        setLoading(false);
+    });
 
     return (
         <div className="mx-auto w-full max-w-md px-4 pb-6">

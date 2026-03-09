@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,6 +23,9 @@ public class OrderService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     // Get active (non-completed, non-cancelled) orders
     public List<OrderModel> getActiveOrders() {
         Query query = new Query();
@@ -36,6 +40,7 @@ public class OrderService {
             order.setCompletedTime(LocalDateTime.now());
             orderRepository.save(order);
         });
+        messagingTemplate.convertAndSend("/topic/orders", getActiveOrders());
     }
 
     // Search completed/all orders with filters
@@ -71,7 +76,9 @@ public class OrderService {
         }
         // Generate order code like SK + 8 digits
         order.setOrderCode("SK" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase());
-        return orderRepository.save(order);
+        OrderModel saved = orderRepository.save(order);
+        messagingTemplate.convertAndSend("/topic/orders", getActiveOrders());
+        return saved;
     }
 
     // Get all orders
