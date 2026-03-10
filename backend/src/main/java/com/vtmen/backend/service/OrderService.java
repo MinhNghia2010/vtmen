@@ -29,10 +29,7 @@ public class OrderService {
     private StringRedisTemplate redisTemplate;
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${notify.backend.url}")
-    private String notifyBackendUrl;
+    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
     // Get active (non-completed, non-cancelled) orders
     public List<OrderModel> getActiveOrders() {
@@ -42,14 +39,15 @@ public class OrderService {
     }
 
     // Complete an order
-    public void completeOrder(String id) {
-        orderRepository.findById(id).ifPresent(order -> {
-            order.setStatus("delivered");
-            order.setCompletedTime(LocalDateTime.now());
-            orderRepository.save(order);
-        });
-        redisTemplate.convertAndSend("order_topic", "REFRESH");
-    }
+public void completeOrder(String id) {
+    orderRepository.findById(id).ifPresent(order -> {
+        order.setStatus("delivered");
+        order.setCompletedTime(LocalDateTime.now());
+        orderRepository.save(order);
+    });
+    publishActiveOrders();
+}
+
 
     // Search completed/all orders with filters
     public List<OrderModel> searchHistory(String date, String name, String phone, Integer quantity,
@@ -82,17 +80,9 @@ public class OrderService {
         if (order.getStatus() == null || order.getStatus().isEmpty()) {
             order.setStatus("pending");
         }
-        // Generate order code like SK + 8 digits
         order.setOrderCode("SK" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase());
         OrderModel saved = orderRepository.save(order);
-        redisTemplate.convertAndSend("order_topic", "REFRESH");
-        // Notify the other backend (localhost:8081) so it can alert its clients
-        try {
-            restTemplate.postForEntity(notifyBackendUrl, saved, String.class);
-            System.out.println("[Notify] Sent order to " + notifyBackendUrl);
-        } catch (Exception e) {
-            System.err.println("[Notify] Could not reach " + notifyBackendUrl + ": " + e.getMessage());
-        }
+        publishActiveOrders();
         return saved;
     }
 
@@ -100,4 +90,14 @@ public class OrderService {
     public List<OrderModel> getAllOrders() {
         return orderRepository.findAll();
     }
+
+    private void publishActiveOrders() {
+        try {
+            List<OrderModel> active = getActiveOrders();
+            redisTemplate.convertAndSend("order_topic", objectMapper.writeValueAsString(active));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
+
