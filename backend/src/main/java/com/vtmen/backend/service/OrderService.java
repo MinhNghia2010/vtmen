@@ -40,7 +40,7 @@ public class OrderService {
 
     // Complete an order
 public void completeOrder(String id) {
-    orderRepository.findById(id).ifPresent(order -> {
+    orderRepository.findByOrderCode(id).ifPresent(order -> {
         order.setStatus("delivered");
         order.setCompletedTime(LocalDateTime.now());
         orderRepository.save(order);
@@ -84,6 +84,29 @@ public void completeOrder(String id) {
         OrderModel saved = orderRepository.save(order);
         publishActiveOrders();
         return saved;
+    }
+
+    // Update an existing order
+    public OrderModel updateOrder(String id, OrderModel updates) {
+        return orderRepository.findByOrderCode(id).map(order -> {
+            if (updates.getFullName() != null) order.setFullName(updates.getFullName());
+            if (updates.getPhone() != null) order.setPhone(updates.getPhone());
+            if (updates.getAddress() != null) order.setAddress(updates.getAddress());
+            if (updates.getQuantity() != null) order.setQuantity(updates.getQuantity());
+            if (updates.getNote() != null) order.setNote(updates.getNote());
+            OrderModel saved = orderRepository.save(order);
+            publishActiveOrders();
+            return saved;
+        }).orElse(null);
+    }
+
+    // Cancel an order
+    public void cancelOrder(String id) {
+        orderRepository.findByOrderCode(id).ifPresent(order -> {
+            order.setStatus("cancelled");
+            orderRepository.save(order);
+        });
+        publishActiveOrders();
     }
 
     // Get all orders

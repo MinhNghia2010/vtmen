@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,5 +54,17 @@ public class OrderController {
     @PostMapping("/{id}/complete")
     public void completeOrder(@PathVariable String id) {
         orderService.completeOrder(id);
+    }
+
+    // PUT /api/orders/{id} — Update an existing order
+    @PutMapping("/{id}")
+    public OrderModel updateOrder(@PathVariable String id, @RequestBody OrderModel updates) {
+        return orderService.updateOrder(id, updates);
+    }
+
+    // POST /api/orders/{id}/cancel — Cancel an order
+    @PostMapping("/{id}/cancel")
+    public void cancelOrder(@PathVariable String id) {
+        orderService.cancelOrder(id);
     }
 }

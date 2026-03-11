@@ -10,4 +10,6 @@ public interface OrderRepository extends MongoRepository<OrderModel, String> {
     List<OrderModel> findByStatus(String status);
 
     List<OrderModel> findByStatusNot(String status);
+    
+    java.util.Optional<OrderModel> findByOrderCode(String orderCode);
 }

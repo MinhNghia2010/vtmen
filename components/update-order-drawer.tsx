@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Loader2, Package, User, Phone, MapPin, FileText, Box } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Loader2, Pencil, User, Phone, MapPin, FileText, Box } from "lucide-react";
 import {
     Drawer,
     DrawerClose,
@@ -10,18 +10,24 @@ import {
     DrawerFooter,
     DrawerHeader,
     DrawerTitle,
-    DrawerTrigger,
 } from "@/components/ui/drawer";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createOrder, type CreateOrderPayload } from "@/lib/api";
+import { updateOrder, type UpdateOrderPayload } from "@/lib/api";
+import { type Order } from "@/lib/orders";
 
-export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => void }) {
-    const [open, setOpen] = useState(false);
+interface UpdateOrderDrawerProps {
+    order: Order;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onUpdated?: () => void;
+}
+
+export default function UpdateOrderDrawer({ order, open, onOpenChange, onUpdated }: UpdateOrderDrawerProps) {
     const [loading, setLoading] = useState(false);
-    const [form, setForm] = useState<CreateOrderPayload>({
+    const [form, setForm] = useState<UpdateOrderPayload>({
         fullName: "",
         phone: "",
         address: "",
@@ -29,7 +35,20 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
         note: "",
     });
 
-    const handleChange = (field: keyof CreateOrderPayload, value: string) => {
+    // Pre-fill form when order changes or drawer opens
+    useEffect(() => {
+        if (open && order) {
+            setForm({
+                fullName: order.tenKhachHang || "",
+                phone: order.sdt || "",
+                address: order.diaChi || "",
+                quantity: order.soLuong || 1,
+                note: order.sanPham || "",
+            });
+        }
+    }, [open, order]);
+
+    const handleChange = (field: keyof UpdateOrderPayload, value: string) => {
         setForm((prev) => ({
             ...prev,
             [field]: field === 'quantity' ? parseInt(value) || 0 : value
@@ -40,19 +59,18 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
         if (!form.fullName || !form.phone || !form.address) return;
         setLoading(true);
         try {
-            const result = await createOrder(form);
+            const result = await updateOrder(order.maDonHang, form);
             if (result) {
-                toast.success(`Đã tạo thành công đơn hàng ${result.orderCode || result.id || ''}`, {
-                    className: "!text-green-500 !border-green-600",
+                toast.success(`Đã cập nhật đơn hàng ${order.maDonHang}`, {
+                    className: "!text-blue-500 !border-blue-600",
                 });
-                setOpen(false);
-                setForm({ fullName: "", phone: "", address: "", quantity: 1, note: "" });
-                onCreated?.();
+                onOpenChange(false);
+                onUpdated?.();
             } else {
-                toast.error("Không thể tạo đơn hàng. Vui lòng thử lại sau.");
+                toast.error("Không thể cập nhật đơn hàng. Vui lòng thử lại sau.");
             }
         } catch (error) {
-            toast.error("Đã xảy ra lỗi khi tạo đơn hàng");
+            toast.error("Đã xảy ra lỗi khi cập nhật đơn hàng");
         } finally {
             setLoading(false);
         }
@@ -69,26 +87,18 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
     const isValid = form.fullName && form.phone && form.address;
 
     return (
-        <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger asChild>
-                <button
-                    className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-primary/30 active:scale-95"
-                    aria-label="Tạo đơn hàng mới"
-                >
-                    <Plus className="h-5 w-5" />
-                </button>
-            </DrawerTrigger>
+        <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent>
                 <div className="mx-auto w-full max-w-md">
                     <DrawerHeader>
                         <DrawerTitle className="flex items-center gap-2 text-lg">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                                <Package className="h-4 w-4 text-primary" />
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10">
+                                <Pencil className="h-4 w-4 text-blue-500" />
                             </div>
-                            Tạo đơn hàng mới
+                            Cập nhật đơn hàng
                         </DrawerTitle>
                         <DrawerDescription>
-                            Điền thông tin bên dưới để tạo đơn hàng
+                            Chỉnh sửa thông tin đơn hàng <span className="font-semibold text-foreground">{order.maDonHang}</span>
                         </DrawerDescription>
                     </DrawerHeader>
 
@@ -97,16 +107,16 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
                             const Icon = field.icon;
                             return (
                                 <div key={field.key} className="space-y-1.5">
-                                    <Label htmlFor={field.key} className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                                    <Label htmlFor={`update-${field.key}`} className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                                         <Icon className="h-3.5 w-3.5" />
                                         {field.label}
                                         {field.required && <span className="text-destructive">*</span>}
                                     </Label>
                                     <Input
-                                        id={field.key}
+                                        id={`update-${field.key}`}
                                         type={(field as any).type || "text"}
                                         placeholder={field.placeholder}
-                                        value={form[field.key] || ""}
+                                        value={form[field.key]?.toString() || ""}
                                         onChange={(e) => handleChange(field.key, e.target.value)}
                                         className="h-11 rounded-xl border-border/60 bg-muted/30 transition-all focus:bg-background focus:ring-2 focus:ring-primary/20"
                                     />
@@ -119,17 +129,17 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
                         <Button
                             onClick={handleSubmit}
                             disabled={!isValid || loading}
-                            className="h-12 w-full rounded-xl text-base font-semibold shadow-md shadow-primary/20 transition-all hover:shadow-lg hover:shadow-primary/30"
+                            className="h-12 w-full rounded-xl bg-blue-500 text-base font-semibold shadow-md shadow-green-500/20 transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-green-500/30"
                         >
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang tạo...
+                                    Đang cập nhật...
                                 </>
                             ) : (
                                 <>
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Tạo đơn hàng
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Cập nhật đơn hàng
                                 </>
                             )}
                         </Button>

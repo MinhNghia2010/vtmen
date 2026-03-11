@@ -95,3 +95,38 @@ export async function createOrder(payload: CreateOrderPayload): Promise<BackendO
         return null;
     }
 }
+
+export type UpdateOrderPayload = {
+    fullName?: string;
+    phone?: string;
+    address?: string;
+    quantity?: number;
+    note?: string;
+};
+
+export async function updateOrder(orderId: string, payload: UpdateOrderPayload): Promise<BackendOrder | null> {
+    try {
+        const res = await fetch(`${API_BASE}/orders/${orderId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error("Failed to update order");
+        return await res.json();
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+export async function cancelOrder(orderId: string): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/orders/${orderId}/cancel`, {
+            method: "POST",
+        });
+        return res.ok;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
+}

@@ -2,13 +2,28 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { type Order } from "@/lib/orders";
-import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
-import { notFound, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { fetchActiveOrders, fetchOrderHistory, cancelOrder } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, AlertTriangle, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
 
 import { useAnimations } from "@/contexts/animation-context";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogMedia,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import UpdateOrderDrawer from "@/components/update-order-drawer";
 
 const statusStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -32,33 +47,64 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
     const { animationsEnabled } = useAnimations();
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updateDrawerOpen, setUpdateDrawerOpen] = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
+
+    const loadOrder = async () => {
+        setLoading(true);
+        try {
+            if (animationsEnabled) {
+                await new Promise((resolve) => setTimeout(resolve, 300));
+            }
+            const [active, history] = await Promise.all([
+                fetchActiveOrders(),
+                fetchOrderHistory()
+            ]);
+            const allOrders = [...active, ...history];
+            const found = allOrders.find((o) => o.maDonHang === orderId);
+            if (found) {
+                setOrder(found);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        async function loadOrder() {
-            setLoading(true);
-            try {
-                // Wait for the slide animation to finish (300ms) before fetching
-                if (animationsEnabled) {
-                    await new Promise((resolve) => setTimeout(resolve, 300));
-                }
-
-                const [active, history] = await Promise.all([
-                    fetchActiveOrders(),
-                    fetchOrderHistory()
-                ]);
-                const allOrders = [...active, ...history];
-                const found = allOrders.find((o) => o.maDonHang === orderId);
-                if (found) {
-                    setOrder(found);
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        }
         loadOrder();
     }, [orderId, animationsEnabled]);
+
+    const handleCancelOrder = async () => {
+        if (!order) return;
+        setCancelLoading(true);
+        try {
+            const success = await cancelOrder(order.maDonHang);
+            if (success) {
+                toast.success(`Đã hủy đơn hàng ${order.maDonHang}`, {
+                    className: "!text-red-500 !border-red-600",
+                });
+                // Navigate back after cancellation
+                if (window.history.length > 2) {
+                    router.back();
+                } else {
+                    router.replace('/postman/orders');
+                }
+            } else {
+                toast.error("Không thể hủy đơn hàng. Vui lòng thử lại sau.");
+            }
+        } catch (error) {
+            toast.error("Đã xảy ra lỗi khi hủy đơn hàng");
+        } finally {
+            setCancelLoading(false);
+        }
+    };
+
+    const handleOrderUpdated = () => {
+        // Re-fetch to show updated data
+        loadOrder();
+    };
 
     return (
         <div className={`flex-1 px-4 pt-4 pb-6 ${animationsEnabled ? 'animate-in slide-in-from-right fade-in duration-300 fill-mode-both' : ''}`}>
@@ -143,6 +189,70 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                         <InfoRow label="Address" value={order.diaChi} />
                         <InfoRow label="Status" value={order.trangThai} />
                     </div>
+
+                    {/* Action Buttons */}
+                    <div className={`flex gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>
+                        {/* Update Order Button */}
+                        <Button
+                            variant="default"
+                            size="lg"
+                            className="bg-blue-500 hover:bg-blue-700"
+                            onClick={() => setUpdateDrawerOpen(true)}
+                        >
+                            Update Order
+                        </Button>
+
+                        {/* Cancel Order Button with AlertDialog */}
+                        <AlertDialog>
+                            <AlertDialogTrigger
+                                render={
+                                    <Button
+                                        variant="outline"
+                                        size="lg"
+                                        className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                    >
+                                        Cancel Order
+                                    </Button>
+                                }
+                            />
+                            <AlertDialogContent size="sm">
+                                <AlertDialogHeader>
+                                    <AlertDialogMedia className="bg-red-100 text-red-600">
+                                        <AlertTriangle className="h-5 w-5" />
+                                    </AlertDialogMedia>
+                                    <AlertDialogTitle>Hủy đơn hàng?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Bạn có chắc chắn muốn hủy đơn hàng <span className="font-semibold text-foreground">{order.maDonHang}</span>? Hành động này không thể hoàn tác.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Quay lại</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={handleCancelOrder}
+                                        disabled={cancelLoading}
+                                        className="bg-red-600 hover:bg-red-700"
+                                    >
+                                        {cancelLoading ? (
+                                            <>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Đang hủy...
+                                            </>
+                                        ) : (
+                                            "Xác nhận hủy"
+                                        )}
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+
+                    {/* Update Order Drawer */}
+                    <UpdateOrderDrawer
+                        order={order}
+                        open={updateDrawerOpen}
+                        onOpenChange={setUpdateDrawerOpen}
+                        onUpdated={handleOrderUpdated}
+                    />
                 </div>
             )}
         </div>
