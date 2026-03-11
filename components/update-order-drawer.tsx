@@ -67,10 +67,14 @@ export default function UpdateOrderDrawer({ order, open, onOpenChange, onUpdated
                 onOpenChange(false);
                 onUpdated?.();
             } else {
-                toast.error("Không thể cập nhật đơn hàng. Vui lòng thử lại sau.");
+                toast.error("Không thể cập nhật đơn hàng. Vui lòng thử lại sau.", {
+                    className: "!text-yellow-500 !border-yellow-600",
+                });
             }
         } catch (error) {
-            toast.error("Đã xảy ra lỗi khi cập nhật đơn hàng");
+            toast.error("Đã xảy ra lỗi khi cập nhật đơn hàng", {
+                className: "!text-orange-500 !border-orange-600",
+            });
         } finally {
             setLoading(false);
         }

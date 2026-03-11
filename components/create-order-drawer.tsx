@@ -49,10 +49,14 @@ export default function CreateOrderDrawer({ onCreated }: { onCreated?: () => voi
                 setForm({ fullName: "", phone: "", address: "", quantity: 1, note: "" });
                 onCreated?.();
             } else {
-                toast.error("Không thể tạo đơn hàng. Vui lòng thử lại sau.");
+                toast.error("Không thể tạo đơn hàng. Vui lòng thử lại sau.", {
+                    className: "!text-yellow-500 !border-yellow-600",
+                });
             }
         } catch (error) {
-            toast.error("Đã xảy ra lỗi khi tạo đơn hàng");
+            toast.error("Đã xảy ra lỗi khi tạo đơn hàng", {
+                className: "!text-orange-500 !border-orange-600",
+            });
         } finally {
             setLoading(false);
         }
