@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,6 +74,21 @@ public class OrderController {
         return orderService.createOrder(order);
     }
 
+    // PATCH /api/orders/{orderCode}/status — Update status (pending -> placed)
+    @PatchMapping("/{orderCode}/status")
+    public ResponseEntity<OrderModel> updateOrderStatus(
+            @PathVariable String orderCode,
+            @RequestBody StatusUpdateRequest body
+    ) {
+        if (body == null || body.status() == null || !"placed".equalsIgnoreCase(body.status())) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return orderService.updateOrderStatusPendingToPlaced(orderCode)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     // POST /api/orders/{id}/complete — Mark order as delivered
     @PostMapping("/{id}/complete")
     public void completeOrder(@PathVariable String id) {
@@ -90,4 +106,6 @@ public class OrderController {
     public void cancelOrder(@PathVariable String id) {
         orderService.cancelOrder(id);
     }
+
+    public record StatusUpdateRequest(String status) {}
 }

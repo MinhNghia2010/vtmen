@@ -52,6 +52,17 @@ public class OrderService {
                 .filter(order -> "pending".equalsIgnoreCase(order.getStatus()));
     }
 
+    public Optional<OrderModel> updateOrderStatusPendingToPlaced(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> "pending".equalsIgnoreCase(order.getStatus()))
+                .map(order -> {
+                    order.setStatus("placed");
+                    OrderModel saved = orderRepository.save(order);
+                    publishActiveOrders();
+                    return saved;
+                });
+    }
+
     // Complete an order
 public void completeOrder(String id) {
     orderRepository.findByOrderCode(id).ifPresent(order -> {
