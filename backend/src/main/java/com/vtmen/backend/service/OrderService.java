@@ -3,17 +3,16 @@ package com.vtmen.backend.service;
 import com.vtmen.backend.model.OrderModel;
 import com.vtmen.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,6 +35,10 @@ public class OrderService {
         Query query = new Query();
         query.addCriteria(Criteria.where("status").nin("delivered", "cancelled"));
         return mongoTemplate.find(query, OrderModel.class);
+    }
+
+    public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode);
     }
 
     // Complete an order

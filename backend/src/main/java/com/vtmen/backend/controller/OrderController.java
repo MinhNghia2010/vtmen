@@ -3,6 +3,7 @@ package com.vtmen.backend.controller;
 import com.vtmen.backend.model.OrderModel;
 import com.vtmen.backend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +26,14 @@ public class OrderController {
     @GetMapping("/active")
     public List<OrderModel> getActiveOrders() {
         return orderService.getActiveOrders();
+    }
+
+    // GET /api/orders/{orderCode} — Get one order by orderCode
+    @GetMapping("/{orderCode}")
+    public ResponseEntity<OrderModel> getOrderByOrderCode(@PathVariable String orderCode) {
+        return orderService.getOrderByOrderCode(orderCode)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // GET /api/orders/history — Search delivered orders
