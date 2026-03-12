@@ -10,8 +10,24 @@ import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 
 export default function Page() {
     const [refreshKey, setRefreshKey] = useState(0);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     useSwipeBack('/');
     useScrollRestoration();
+
+    const triggerRefreshAnimation = () => {
+        setIsRefreshing(true);
+        setTimeout(() => setIsRefreshing(false), 500);
+    };
+
+    const handleRefresh = () => {
+        setRefreshKey((k) => k + 1);
+        triggerRefreshAnimation();
+    };
+
+    const handleDataChange = () => {
+        // When data changes via WebSocket, play the same animation
+        triggerRefreshAnimation();
+    };
 
     return (
         <div className="mx-auto flex min-h-screen max-w-md flex-col bg-background">
@@ -36,11 +52,11 @@ export default function Page() {
                             <History className="h-4 w-4" />
                         </Link>
                         <button
-                            onClick={() => setRefreshKey((k) => k + 1)}
+                            onClick={handleRefresh}
                             className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-muted-foreground transition-all hover:border-primary/50 hover:text-primary active:scale-95"
                             aria-label="Làm mới"
                         >
-                            <RefreshCw className="h-4 w-4" />
+                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
                         </button>
                         <CreateOrderDrawer onCreated={() => setRefreshKey((k) => k + 1)} />
                     </div>
@@ -48,8 +64,8 @@ export default function Page() {
             </div>
 
             {/* Order List */}
-            <div className="flex-1 pt-3 pb-6">
-                <OrderCard key={refreshKey} />
+            <div className={`flex-1 pt-3 pb-6 ${isRefreshing ? "animate-in fade-in duration-300" : ""}`}>
+                <OrderCard key={refreshKey} onDataChange={handleDataChange} />
             </div>
         </div>
     );

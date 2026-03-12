@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
 
 import { useAnimations } from "@/contexts/animation-context";
+import { useOrdersWebSocket } from "@/hooks/use-orders-websocket";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -75,6 +76,33 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
     useEffect(() => {
         loadOrder();
     }, [orderId, animationsEnabled]);
+
+    // Instant update when this order changes via WebSocket
+    useOrdersWebSocket((updatedOrders) => {
+        const found = updatedOrders.find((o) => o.maDonHang === orderId);
+        if (!found) {
+            return;
+        }
+
+        setOrder((prev) => {
+            if (prev) {
+                const changed =
+                    prev.trangThai !== found.trangThai ||
+                    prev.tenKhachHang !== found.tenKhachHang ||
+                    prev.diaChi !== found.diaChi ||
+                    prev.sanPham !== found.sanPham ||
+                    prev.soLuong !== found.soLuong;
+
+                if (changed && typeof window !== "undefined") {
+                    // Reload the page instantly when this order's data changes
+                    window.location.reload();
+                    return prev;
+                }
+            }
+
+            return found;
+        });
+    });
 
     const handleCancelOrder = async () => {
         if (!order) return;

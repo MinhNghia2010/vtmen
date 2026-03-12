@@ -35,7 +35,7 @@ const statusIcons: Record<OrderStatus, React.ReactNode> = {
     cancelled: <XCircle className="h-3.5 w-3.5" />,
 }
 
-export default function OrderCard() {
+export default function OrderCard({ onDataChange }: { onDataChange?: () => void }) {
     useScrollRestoration();
     const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
@@ -59,7 +59,22 @@ export default function OrderCard() {
 
     // Real-time updates via WebSocket
     useOrdersWebSocket((updatedOrders) => {
-        setOrders(updatedOrders);
+        setOrders((prev) => {
+            const statusChanged =
+                prev.length > 0 &&
+                prev.some((prevOrder) => {
+                    const next = updatedOrders.find(
+                        (o) => o.maDonHang === prevOrder.maDonHang
+                    );
+                    return next && next.trangThai !== prevOrder.trangThai;
+                });
+
+            if (statusChanged && onDataChange) {
+                onDataChange();
+            }
+
+            return updatedOrders;
+        });
         setLoading(false);
     });
 

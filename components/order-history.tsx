@@ -40,20 +40,49 @@ export default function OrderHistory() {
     const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [justAddedIds, setJustAddedIds] = useState<string[]>([]);
 
     useEffect(() => {
-        async function loadData() {
-            setLoading(true);
+        let isMounted = true;
+
+        const loadData = async () => {
             try {
                 const data = await fetchOrderHistory();
-                setOrders(data);
+                if (!isMounted) return;
+
+                setOrders((prev) => {
+                    // Detect new orders that just entered history (delivered/cancelled)
+                    const prevIds = new Set(prev.map((o) => o.maDonHang));
+                    const newOnes = data.filter((o) => !prevIds.has(o.maDonHang));
+
+                    if (newOnes.length > 0) {
+                        setJustAddedIds((ids) => [
+                            ...ids,
+                            ...newOnes.map((o) => o.maDonHang),
+                        ]);
+                    }
+
+                    return data;
+                });
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
-        }
+        };
+
+        // Initial load
         loadData();
+
+        // Poll periodically to catch newly completed/cancelled orders
+        const interval = setInterval(loadData, 5000);
+
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     return (
@@ -84,8 +113,19 @@ export default function OrderHistory() {
                             variant="outline"
                             role="listitem"
                             render={<Link href={`/postman/orders/${order.maDonHang}`} />}
-                            className={`${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-2' : ''} transition-all duration-200 hover:border-primary/70`}
-                            style={animationsEnabled ? { animationDelay: `${idx * 50}ms`, animationFillMode: "both" } : undefined}
+                            className={`${animationsEnabled ? 'animate-in fade-in slide-in-from-bottom-2' : ''} ${
+                                justAddedIds.includes(order.maDonHang)
+                                    ? 'animate-in fade-in slide-in-from-bottom-2'
+                                    : ''
+                            } transition-all duration-200 hover:border-primary/70`}
+                            style={
+                                animationsEnabled
+                                    ? {
+                                          animationDelay: `${idx * 50}ms`,
+                                          animationFillMode: "both",
+                                      }
+                                    : undefined
+                            }
                         >
                             <ItemMedia variant="icon">
                                 {order.trangThai === "delivered" ? (
