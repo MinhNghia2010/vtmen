@@ -37,8 +37,19 @@ public class OrderService {
         return mongoTemplate.find(query, OrderModel.class);
     }
 
+    public List<OrderModel> getPendingOrders() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("status").is("pending"));
+        return mongoTemplate.find(query, OrderModel.class);
+    }
+
     public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
         return orderRepository.findByOrderCode(orderCode);
+    }
+
+    public Optional<OrderModel> getPendingOrderByOrderCode(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> "pending".equalsIgnoreCase(order.getStatus()));
     }
 
     // Complete an order

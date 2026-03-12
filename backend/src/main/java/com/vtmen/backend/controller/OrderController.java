@@ -28,6 +28,20 @@ public class OrderController {
         return orderService.getActiveOrders();
     }
 
+    // GET /api/orders/pending — Pending orders
+    @GetMapping("/pending")
+    public List<OrderModel> getPendingOrders() {
+        return orderService.getPendingOrders();
+    }
+
+    // GET /api/orders/pending/{orderCode} — Get one pending order by orderCode
+    @GetMapping("/pending/{orderCode}")
+    public ResponseEntity<OrderModel> getPendingOrderByOrderCode(@PathVariable String orderCode) {
+        return orderService.getPendingOrderByOrderCode(orderCode)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     // GET /api/orders/{orderCode} — Get one order by orderCode
     @GetMapping("/{orderCode}")
     public ResponseEntity<OrderModel> getOrderByOrderCode(@PathVariable String orderCode) {
