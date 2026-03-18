@@ -29,6 +29,30 @@ public class OrderController {
         return orderService.getActiveOrders();
     }
 
+    // GET /api/orders/completed — Completed orders
+    @GetMapping("/completed")
+    public List<OrderModel> getCompletedOrders() {
+        return orderService.getCompletedOrders();
+    }
+
+    // GET /api/orders/cancelled — Cancelled orders
+    @GetMapping("/cancelled")
+    public List<OrderModel> getCancelledOrders() {
+        return orderService.getCancelledOrders();
+    }
+
+    // GET /api/orders/shipping — Shipping orders
+    @GetMapping("/shipping")
+    public List<OrderModel> getShippingOrders() {
+        return orderService.getShippingOrders();
+    }
+
+    // GET /api/orders/placed — Placed orders
+    @GetMapping("/placed")
+    public List<OrderModel> getPlacedOrders() {
+        return orderService.getPlacedOrders();
+    }
+
     // GET /api/orders/pending — Pending orders
     @GetMapping("/pending")
     public List<OrderModel> getPendingOrders() {

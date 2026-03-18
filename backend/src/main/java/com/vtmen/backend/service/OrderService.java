@@ -31,23 +31,53 @@ public class OrderService {
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
+    // Get order by orderCode
+    public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode);
+    }
+
+    // Get completed orders
+    public List<OrderModel> getCompletedOrders() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("status").is("delivered"));
+        return mongoTemplate.find(query, OrderModel.class);
+    }
+
+    // Get cancelled orders
+    public List<OrderModel> getCancelledOrders() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("status").is("cancelled"));
+        return mongoTemplate.find(query, OrderModel.class);
+    }
+
+    // Get shipping orders
+    public List<OrderModel> getShippingOrders() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("status").is("shipping"));
+        return mongoTemplate.find(query, OrderModel.class);
+    }
+
+    // Get placed orders
+    public List<OrderModel> getPlacedOrders() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("status").is("placed"));
+        return mongoTemplate.find(query, OrderModel.class);
+    }
+
     // Get active (non-completed, non-cancelled) orders
     public List<OrderModel> getActiveOrders() {
         Query query = new Query();
         query.addCriteria(Criteria.where("status").nin("delivered", "cancelled"));
         return mongoTemplate.find(query, OrderModel.class);
     }
-
+    // Get pending orders
     public List<OrderModel> getPendingOrders() {
         Query query = new Query();
         query.addCriteria(Criteria.where("status").is("pending"));
         return mongoTemplate.find(query, OrderModel.class);
     }
 
-    public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
-        return orderRepository.findByOrderCode(orderCode);
-    }
-
+    // Get pending order by orderCode
     public Optional<OrderModel> getPendingOrderByOrderCode(String orderCode) {
         return orderRepository.findByOrderCode(orderCode)
                 .filter(order -> "pending".equalsIgnoreCase(order.getStatus()));
