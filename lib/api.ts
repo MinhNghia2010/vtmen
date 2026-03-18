@@ -32,7 +32,6 @@ export function mapBackendOrderToFrontend(b: BackendOrder): Order {
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
-const DELIVERY_API_BASE = process.env.NEXT_PUBLIC_DELIVERY_API_URL || "http://223.130.11.193:8081/api";
 
 export async function fetchActiveOrders(): Promise<Order[]> {
     try {
@@ -91,20 +90,6 @@ export async function createOrder(payload: CreateOrderPayload): Promise<BackendO
         });
         if (!res.ok) throw new Error("Failed to create order");
         const order: BackendOrder = await res.json();
-
-        // Notify delivery car system — fire and forget
-        fetch(`${DELIVERY_API_BASE}/orders/create`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                orderCode: order.orderCode,
-                fullName: order.fullName,
-                phone: order.phone,
-                address: order.address,
-                note: order.note,
-            }),
-        }).catch((err) => console.warn("[DeliverySystem] Failed to notify:", err));
-
         return order;
     } catch (error) {
         console.error(error);
