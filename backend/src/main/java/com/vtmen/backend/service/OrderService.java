@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class OrderService {
     private MongoTemplate mongoTemplate;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
@@ -57,6 +58,43 @@ public class OrderService {
                 .filter(order -> "pending".equalsIgnoreCase(order.getStatus()))
                 .map(order -> {
                     order.setStatus("placed");
+                    OrderModel saved = orderRepository.save(order);
+                    publishActiveOrders();
+                    return saved;
+                });
+    }
+
+    public Optional<OrderModel> acceptDepositByQr(String orderCode) {
+        // Accept only if order exists and is not cancelled/delivered.
+        // If it's pending, move it to placed to mark it as accepted for deposit.
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> order.getStatus() == null
+                        || (!"cancelled".equalsIgnoreCase(order.getStatus())
+                        && !"delivered".equalsIgnoreCase(order.getStatus())))
+                .map(order -> {
+                    if (order.getStatus() == null || "pending".equalsIgnoreCase(order.getStatus())) {
+                        order.setStatus("placed");
+                    }
+                    OrderModel saved = orderRepository.save(order);
+                    publishActiveOrders();
+                    return saved;
+                });
+    }
+
+    public Optional<OrderModel> markDeposited(String orderCode, Integer compartmentId, OffsetDateTime closedAt) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> order.getStatus() == null
+                        || (!"cancelled".equalsIgnoreCase(order.getStatus())
+                        && !"delivered".equalsIgnoreCase(order.getStatus())))
+                .map(order -> {
+                    order.setCompartmentId(compartmentId);
+                    if (closedAt != null) {
+                        order.setDepositedTime(closedAt.toLocalDateTime());
+                    } else {
+                        order.setDepositedTime(LocalDateTime.now());
+                    }
+                    // After deposit, it is now in shipping stage
+                    order.setStatus("shipping");
                     OrderModel saved = orderRepository.save(order);
                     publishActiveOrders();
                     return saved;
@@ -142,7 +180,7 @@ public void completeOrder(String id) {
     private void publishActiveOrders() {
         try {
             List<OrderModel> active = getActiveOrders();
-            redisTemplate.convertAndSend("order_topic", objectMapper.writeValueAsString(active));
+            messagingTemplate.convertAndSend("/topic/orders", active);
         } catch (Exception e) {
             e.printStackTrace();
         }

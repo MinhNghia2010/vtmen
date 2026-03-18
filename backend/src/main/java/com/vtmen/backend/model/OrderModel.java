@@ -18,6 +18,8 @@ public class OrderModel {
     private String status; // pending, placed, shipping, delivered, cancelled
     private LocalDateTime createdTime;
     private LocalDateTime completedTime;
+    private Integer compartmentId;
+    private LocalDateTime depositedTime;
 
     public OrderModel() {
         this.createdTime = LocalDateTime.now();
@@ -103,5 +105,21 @@ public class OrderModel {
 
     public void setCompletedTime(LocalDateTime completedTime) {
         this.completedTime = completedTime;
+    }
+
+    public Integer getCompartmentId() {
+        return compartmentId;
+    }
+
+    public void setCompartmentId(Integer compartmentId) {
+        this.compartmentId = compartmentId;
+    }
+
+    public LocalDateTime getDepositedTime() {
+        return depositedTime;
+    }
+
+    public void setDepositedTime(LocalDateTime depositedTime) {
+        this.depositedTime = depositedTime;
     }
 }
