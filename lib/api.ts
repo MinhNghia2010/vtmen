@@ -81,7 +81,6 @@ export type CreateOrderPayload = {
 
 export async function createOrder(payload: CreateOrderPayload): Promise<BackendOrder | null> {
     try {
-        console.log("[createOrder] Calling vtmen API:", `${API_BASE}/orders/create`);
         const res = await fetch(`${API_BASE}/orders/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -90,12 +89,10 @@ export async function createOrder(payload: CreateOrderPayload): Promise<BackendO
                 status: payload.status || "pending",
             }),
         });
-        if (!res.ok) throw new Error("Failed to create order: " + res.status);
+        if (!res.ok) throw new Error("Failed to create order");
         const order: BackendOrder = await res.json();
-        console.log("[createOrder] vtmen response:", order);
 
         // Notify delivery car system — fire and forget
-        console.log("[createOrder] Notifying delivery system:", `${DELIVERY_API_BASE}/orders/create`);
         fetch(`${DELIVERY_API_BASE}/orders/create`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -106,13 +103,11 @@ export async function createOrder(payload: CreateOrderPayload): Promise<BackendO
                 address: order.address,
                 note: order.note,
             }),
-        })
-            .then((r) => console.log("[createOrder] Delivery system response:", r.status))
-            .catch((err) => console.warn("[createOrder] Delivery system FAILED:", err));
+        }).catch((err) => console.warn("[DeliverySystem] Failed to notify:", err));
 
         return order;
     } catch (error) {
-        console.error("[createOrder] Error:", error);
+        console.error(error);
         return null;
     }
 }
