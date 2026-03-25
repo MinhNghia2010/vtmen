@@ -200,7 +200,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className={`flex gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>
+                    <div className={order.trangThai === "cancelled" || order.trangThai === "delivered" ? "hidden" : `flex gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={order.trangThai === "pending" && animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>
                         {/* Update Order Button */}
                         <Button
                             variant="default"
