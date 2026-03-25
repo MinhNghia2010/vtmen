@@ -23,6 +23,9 @@ public class DcsController {
     // Returns action ACCEPT_DEPOSIT or REJECT for DCS to act immediately.
     @PostMapping("/qr-scanned")
     public ResponseEntity<QrScannedResponse> qrScanned(@RequestBody QrScannedRequest body) {
+        if (body == null) {
+            return ResponseEntity.badRequest().body(QrScannedResponse.reject("Missing body"));
+        }
         String orderCode = body.qrContent();
         if (orderCode == null || orderCode.isBlank()) {
             return ResponseEntity.badRequest().body(QrScannedResponse.reject("Missing qr_content"));
@@ -36,13 +39,34 @@ public class DcsController {
     // POST /api/dcs/deposit-closed — Đã nạp hàng xong / cửa tủ đóng (DCS gọi vào vtmen)
     @PostMapping("/deposit-closed")
     public ResponseEntity<SimpleResponse> depositClosed(@RequestBody DepositClosedRequest body) {
+        if (body == null) {
+            return ResponseEntity.badRequest().body(new SimpleResponse(400, "Missing body"));
+        }
         String orderCode = body.orderId();
         if (orderCode == null || orderCode.isBlank()) {
             return ResponseEntity.badRequest().body(new SimpleResponse(400, "Missing order_id"));
         }
 
-        orderService.markDeposited(orderCode, body.compartmentId(), body.closedAt());
-        return ResponseEntity.ok(new SimpleResponse(200, "Received successfully"));
+        return orderService.markDeposited(orderCode, body.compartmentId(), body.closedAt())
+                .map(o -> ResponseEntity.ok(new SimpleResponse(200, "Received successfully")))
+                .orElseGet(() -> ResponseEntity.status(404).body(
+                        new SimpleResponse(404, "Order not found or not eligible for deposit")));
+    }
+
+    // POST /api/dcs/arrival-notify — Báo cáo đến (DCS gọi vào vtmen)
+    @PostMapping("/arrival-notify")
+    public ResponseEntity<SimpleResponse> arrivalReport(@RequestBody ArrivalReportRequest body) {
+        if (body == null) {
+            return ResponseEntity.badRequest().body(new SimpleResponse(400, "Missing body"));
+        }
+        String orderCode = body.orderId();
+        if (orderCode == null || orderCode.isBlank()) {
+            return ResponseEntity.badRequest().body(new SimpleResponse(400, "Missing order_id"));
+        }
+        return orderService.markArrived(orderCode, body.arrivalAt())
+                .map(o -> ResponseEntity.ok(new SimpleResponse(200, "Arrived status updated. Notifying user.")))
+                .orElseGet(() -> ResponseEntity.status(404).body(
+                        new SimpleResponse(404, "Order not found or not eligible for arrival update")));
     }
 
     public record QrScannedRequest(
@@ -64,6 +88,7 @@ public class DcsController {
             int status,
             String action,
             @JsonProperty("order_id") String orderId,
+            @JsonProperty("compartment_id") Integer compartmentId,
             String message
     ) {
         static QrScannedResponse accept(OrderModel order) {
@@ -71,6 +96,7 @@ public class DcsController {
                     200,
                     "ACCEPT_DEPOSIT",
                     order.getOrderCode(),
+                    null,
                     "Mã QR hợp lệ, cho phép cất hàng"
             );
         }
@@ -80,10 +106,28 @@ public class DcsController {
                     400,
                     "REJECT",
                     null,
+                    null,
                     message
             );
         }
+
+        static QrScannedResponse pickUpResponse(OrderModel order) {
+            return new QrScannedResponse(
+                200,
+                "ACCEPT_DEPOSIT",
+                order.getOrderCode(),
+                order.getCompartmentId(),
+                "Mã QR hợp lệ, cho phép cất hàng"
+        );
+        }
     }
+
+    public record ArrivalReportRequest(
+        @JsonProperty("event_id") String eventId,
+        @JsonProperty("robot_id") String robotId,
+        @JsonProperty("order_id") String orderId,
+        @JsonProperty("arrival_at") OffsetDateTime arrivalAt
+    ) {}
 
     public record SimpleResponse(int status, String message) {}
 }

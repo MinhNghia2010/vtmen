@@ -20,6 +20,7 @@ public class OrderModel {
     private LocalDateTime completedTime;
     private Integer compartmentId;
     private LocalDateTime depositedTime;
+    private LocalDateTime arrivalTime;
 
     public OrderModel() {
         this.createdTime = LocalDateTime.now();
@@ -121,5 +122,13 @@ public class OrderModel {
 
     public void setDepositedTime(LocalDateTime depositedTime) {
         this.depositedTime = depositedTime;
+    }
+
+    public LocalDateTime getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public void setArrivalTime(LocalDateTime arrivalTime) {
+        this.arrivalTime = arrivalTime;
     }
 }

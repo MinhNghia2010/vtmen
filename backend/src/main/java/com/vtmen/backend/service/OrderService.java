@@ -28,9 +28,6 @@ public class OrderService {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    @Autowired
-    private com.fasterxml.jackson.databind.ObjectMapper objectMapper;
-
     // Get order by orderCode
     public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
         return orderRepository.findByOrderCode(orderCode);
@@ -131,16 +128,32 @@ public class OrderService {
                 });
     }
 
-    // Complete an order
-public void completeOrder(String id) {
-    orderRepository.findByOrderCode(id).ifPresent(order -> {
-        order.setStatus("delivered");
-        order.setCompletedTime(LocalDateTime.now());
-        orderRepository.save(order);
-    });
-    publishActiveOrders();
-}
+    public Optional<OrderModel> markArrived(String orderCode, OffsetDateTime arrivalAt) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> order.getStatus() == null
+                        || (!"cancelled".equalsIgnoreCase(order.getStatus())
+                        && !"delivered".equalsIgnoreCase(order.getStatus())))
+                .map(order -> {
+                    if (arrivalAt != null) {
+                        order.setArrivalTime(arrivalAt.toLocalDateTime());
+                    } else {
+                        order.setArrivalTime(LocalDateTime.now());
+                    }
+                    OrderModel saved = orderRepository.save(order);
+                    publishActiveOrders();
+                    return saved;
+                });
+    }
 
+    // Complete an order
+    public void completeOrder(String id) {
+        orderRepository.findByOrderCode(id).ifPresent(order -> {
+            order.setStatus("delivered");
+            order.setCompletedTime(LocalDateTime.now());
+            orderRepository.save(order);
+            publishActiveOrders();
+        });
+    }
 
     // Search completed/all orders with filters
     public List<OrderModel> searchHistory(String date, String name, String phone, Integer quantity,

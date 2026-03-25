@@ -1,11 +1,179 @@
 package com.vtmen.backend;
 
+import com.vtmen.backend.model.OrderModel;
+import com.vtmen.backend.repository.OrderRepository;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+
+import java.time.LocalDateTime;
 
 @SpringBootApplication
 public class VtmenBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(VtmenBackendApplication.class, args);
+    }
+
+    /**
+     * Mỗi đơn khai báo riêng (không sinh bằng vòng lặp). Mã SK + 8 ký tự hex in hoa giống {@code OrderService#createOrder}.
+     * Để seed lại: xóa collection {@code orders} trong Mongo rồi khởi động lại ứng dụng.
+     */
+    @Bean
+    CommandLineRunner seedOrders(OrderRepository orderRepository) {
+        return args -> {
+            if (orderRepository.count() > 0) {
+                return;
+            }
+
+            LocalDateTime t0 = LocalDateTime.of(2025, 3, 5, 9, 15);
+
+            OrderModel o1 = new OrderModel();
+            o1.setOrderCode("SK11AA22BB");
+            o1.setFullName("Nguyễn Văn An");
+            o1.setPhone("0901234567");
+            o1.setAddress("12 Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh");
+            o1.setQuantity(1);
+            o1.setNote("iPhone 15 Pro Max");
+            o1.setStatus("shipping");
+            o1.setCreatedTime(t0);
+            o1.setCompartmentId(3);
+            o1.setDepositedTime(t0.plusHours(2));
+            orderRepository.save(o1);
+
+            OrderModel o2 = new OrderModel();
+            o2.setOrderCode("SK22BB33CC");
+            o2.setFullName("Trần Thị Bình");
+            o2.setPhone("0912345678");
+            o2.setAddress("45 Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh");
+            o2.setQuantity(2);
+            o2.setNote("Samsung Galaxy S24 Ultra");
+            o2.setStatus("placed");
+            o2.setCreatedTime(t0.plusDays(1).plusHours(3));
+            orderRepository.save(o2);
+
+            OrderModel o3 = new OrderModel();
+            o3.setOrderCode("SK33CC44DD");
+            o3.setFullName("Lê Hoàng Cường");
+            o3.setPhone("0923456789");
+            o3.setAddress("78 Hai Bà Trưng, Phường Tân Định, Quận 1, TP. Hồ Chí Minh");
+            o3.setQuantity(1);
+            o3.setNote("MacBook Air M3");
+            o3.setStatus("delivered");
+            o3.setCreatedTime(t0.plusDays(2));
+            o3.setCompletedTime(t0.plusDays(2).plusDays(1));
+            o3.setCompartmentId(7);
+            o3.setDepositedTime(t0.plusDays(2).plusHours(5));
+            orderRepository.save(o3);
+
+            OrderModel o4 = new OrderModel();
+            o4.setOrderCode("SK44DD55EE");
+            o4.setFullName("Phạm Thu Dung");
+            o4.setPhone("0934567890");
+            o4.setAddress("102 Võ Văn Tần, Phường 5, Quận 3, TP. Hồ Chí Minh");
+            o4.setQuantity(3);
+            o4.setNote("AirPods Pro 2");
+            o4.setStatus("delivered");
+            o4.setCreatedTime(t0.plusDays(3).plusHours(10));
+            o4.setCompletedTime(t0.plusDays(4).plusHours(9));
+            o4.setCompartmentId(2);
+            o4.setDepositedTime(t0.plusDays(3).plusHours(14));
+            orderRepository.save(o4);
+
+            OrderModel o5 = new OrderModel();
+            o5.setOrderCode("SK55EE66FF");
+            o5.setFullName("Hoàng Minh Đức");
+            o5.setPhone("0945678901");
+            o5.setAddress("56 Lý Tự Trọng, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh");
+            o5.setQuantity(1);
+            o5.setNote("iPad Pro M4");
+            o5.setStatus("pending");
+            o5.setCreatedTime(t0.plusDays(4).plusHours(11));
+            orderRepository.save(o5);
+
+            OrderModel o6 = new OrderModel();
+            o6.setOrderCode("SK66FF77AA");
+            o6.setFullName("Võ Thị Hương");
+            o6.setPhone("0956789012");
+            o6.setAddress("200 Cách Mạng Tháng Tám, Phường 10, Quận 3, TP. Hồ Chí Minh");
+            o6.setQuantity(1);
+            o6.setNote("Dell XPS 15");
+            o6.setStatus("shipping");
+            o6.setCreatedTime(t0.plusDays(5));
+            o6.setCompartmentId(11);
+            o6.setDepositedTime(t0.plusDays(5).plusHours(4));
+            orderRepository.save(o6);
+
+            OrderModel o7 = new OrderModel();
+            o7.setOrderCode("SK77AA88BB");
+            o7.setFullName("Đặng Quốc Giang");
+            o7.setPhone("0967890123");
+            o7.setAddress("334 Điện Biên Phủ, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh");
+            o7.setQuantity(2);
+            o7.setNote("Sony WH-1000XM5");
+            o7.setStatus("pending");
+            o7.setCreatedTime(t0.plusDays(6).plusHours(8));
+            orderRepository.save(o7);
+
+            OrderModel o8 = new OrderModel();
+            o8.setOrderCode("SK88BB99CC");
+            o8.setFullName("Bùi Lan Hà");
+            o8.setPhone("0978901234");
+            o8.setAddress("17 Nguyễn Đình Chiểu, Phường Đa Kao, Quận 1, TP. Hồ Chí Minh");
+            o8.setQuantity(1);
+            o8.setNote("Apple Watch Ultra 2");
+            o8.setStatus("placed");
+            o8.setCreatedTime(t0.plusDays(7));
+            orderRepository.save(o8);
+
+            OrderModel o9 = new OrderModel();
+            o9.setOrderCode("SK99CC00DD");
+            o9.setFullName("Ngô Văn Hải");
+            o9.setPhone("0989012345");
+            o9.setAddress("88 Pasteur, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh");
+            o9.setQuantity(1);
+            o9.setNote("Xiaomi 14 Ultra");
+            o9.setStatus("cancelled");
+            o9.setCreatedTime(t0.plusDays(8).plusHours(13));
+            orderRepository.save(o9);
+
+            OrderModel o10 = new OrderModel();
+            o10.setOrderCode("SKAABBCCDD");
+            o10.setFullName("Đỗ Thị Kim");
+            o10.setPhone("0990123456");
+            o10.setAddress("155 Nguyễn Trãi, Phường Phạm Ngũ Lão, Quận 1, TP. Hồ Chí Minh");
+            o10.setQuantity(4);
+            o10.setNote("Logitech MX Master 3S");
+            o10.setStatus("pending");
+            o10.setCreatedTime(t0.plusDays(9).plusHours(15));
+            orderRepository.save(o10);
+
+            OrderModel o11 = new OrderModel();
+            o11.setOrderCode("SKBBCCDDEE");
+            o11.setFullName("Trương Văn Long");
+            o11.setPhone("0901122334");
+            o11.setAddress("60 Lê Văn Sỹ, Phường 11, Quận Phú Nhuận, TP. Hồ Chí Minh");
+            o11.setQuantity(1);
+            o11.setNote("Samsung Galaxy Tab S9");
+            o11.setStatus("delivered");
+            o11.setCreatedTime(t0.plusDays(10));
+            o11.setCompletedTime(t0.plusDays(11).plusHours(10));
+            o11.setCompartmentId(5);
+            o11.setDepositedTime(t0.plusDays(10).plusHours(6));
+            orderRepository.save(o11);
+
+            OrderModel o12 = new OrderModel();
+            o12.setOrderCode("SKCCDDEEFF");
+            o12.setFullName("Lý Mai Phương");
+            o12.setPhone("0912233445");
+            o12.setAddress("9 Hoàng Sa, Phường Tân Định, Quận 1, TP. Hồ Chí Minh");
+            o12.setQuantity(2);
+            o12.setNote("Google Pixel 8 Pro");
+            o12.setStatus("shipping");
+            o12.setCreatedTime(t0.plusDays(11).plusHours(9));
+            o12.setCompartmentId(9);
+            o12.setDepositedTime(t0.plusDays(11).plusHours(11));
+            orderRepository.save(o12);
+        };
     }
 }
