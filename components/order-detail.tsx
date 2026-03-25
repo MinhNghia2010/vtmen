@@ -80,28 +80,9 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
     // Instant update when this order changes via WebSocket
     useOrdersWebSocket((updatedOrders) => {
         const found = updatedOrders.find((o) => o.maDonHang === orderId);
-        if (!found) {
-            return;
+        if (found) {
+            setOrder(found);
         }
-
-        setOrder((prev) => {
-            if (prev) {
-                const changed =
-                    prev.trangThai !== found.trangThai ||
-                    prev.tenKhachHang !== found.tenKhachHang ||
-                    prev.diaChi !== found.diaChi ||
-                    prev.sanPham !== found.sanPham ||
-                    prev.soLuong !== found.soLuong;
-
-                if (changed && typeof window !== "undefined") {
-                    // Reload the page instantly when this order's data changes
-                    window.location.reload();
-                    return prev;
-                }
-            }
-
-            return found;
-        });
     });
 
     const handleCancelOrder = async () => {

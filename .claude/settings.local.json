@@ -8,7 +8,8 @@
       "Bash(node -e \":*)",
       "Bash(curl -s \"http://localhost:8080/api/orders/active\" -o /dev/null -w \"%{http_code}\")",
       "Bash(curl -s \"http://localhost:3000/ws/info\" -o /dev/null -w \"%{http_code}\")",
-      "Bash(curl -s \"http://localhost:8080/ws/info\" -w \"\\\\nHTTP: %{http_code}\")"
+      "Bash(curl -s \"http://localhost:8080/ws/info\" -w \"\\\\nHTTP: %{http_code}\")",
+      "Bash(find 'e:/Backup Comp/vt-fake' -name *.txt -o -name *.text -o -name *.csv)"
     ]
   }
 }
