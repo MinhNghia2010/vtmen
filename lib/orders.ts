@@ -15,7 +15,20 @@ export type Order = {
     ngayGui: string;
     thoiGianDuKien: string;
     soLuong?: number; // Added new field for quantity
+    /** Set when DCS reports deposit closed; required for placed/shipping UX */
+    compartmentId?: number | null;
 };
+
+export function orderNeedsCompartment(status: OrderStatus): boolean {
+    return status === "placed" || status === "shipping";
+}
+
+export function orderCompartmentMissing(order: Order): boolean {
+    return (
+        orderNeedsCompartment(order.trangThai) &&
+        (order.compartmentId === null || order.compartmentId === undefined)
+    );
+}
 
 export const statusLabels: Record<OrderStatus, string> = {
     pending: "Pending",

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/item";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { statusLabels, type Order, type OrderStatus } from "@/lib/orders";
+import { orderCompartmentMissing, orderNeedsCompartment, statusLabels, type Order, type OrderStatus } from "@/lib/orders";
 import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
@@ -96,6 +96,19 @@ function OrderCardItem({ order, index, animate }: { order: Order; index: number;
                         {order.maDonHang}
                     </ItemTitle>
                     <ItemDescription>{order.sanPham}</ItemDescription>
+                    {orderNeedsCompartment(order.trangThai) && (
+                        <p
+                            className={`mt-1 text-xs font-medium ${
+                                orderCompartmentMissing(order)
+                                    ? "text-amber-600 dark:text-amber-500"
+                                    : "text-foreground"
+                            }`}
+                        >
+                            {order.compartmentId != null
+                                ? `compartment_id: ${order.compartmentId}`
+                                : "compartment_id — bắt buộc, chưa có (gọi deposit-closed để gán)"}
+                        </p>
+                    )}
                 </ItemContent>
                 <ItemContent className="flex-none text-center">
                     <Badge variant="outline" className={`gap-1 border-transparent ${getStatusBadgeStyle(order.trangThai)}`}>

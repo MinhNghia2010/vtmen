@@ -11,7 +11,16 @@ export type BackendOrder = {
     note: string;
     status: string;
     orderCode: string;
+    compartmentId?: number | null;
+    /** Some JSON stacks may serialize as snake_case */
+    compartment_id?: number | null;
 };
+
+function backendCompartmentId(b: BackendOrder): number | null {
+    const v = b.compartmentId ?? b.compartment_id;
+    if (v === undefined || v === null) return null;
+    return v;
+}
 
 // Mappers from backend OrderModel to frontend Order
 export function mapBackendOrderToFrontend(b: BackendOrder): Order {
@@ -28,6 +37,7 @@ export function mapBackendOrderToFrontend(b: BackendOrder): Order {
         ngayGui: b.createdTime,
         thoiGianDuKien: "Unknown", // Backend doesn't have estimate time, just use Unknown
         soLuong: b.quantity, // <--- Added mapping for new quantity field
+        compartmentId: backendCompartmentId(b),
     };
 }
 

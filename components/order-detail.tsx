@@ -1,7 +1,7 @@
 "use client";
 
 import { QRCodeSVG } from "qrcode.react";
-import { type Order } from "@/lib/orders";
+import { orderCompartmentMissing, orderNeedsCompartment, type Order } from "@/lib/orders";
 import { fetchActiveOrders, fetchOrderHistory, cancelOrder } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertTriangle, Loader2 } from "lucide-react";
@@ -28,6 +28,7 @@ import UpdateOrderDrawer from "@/components/update-order-drawer";
 
 const statusStyles: Record<string, string> = {
     pending: "bg-yellow-100 text-yellow-800",
+    placed: "bg-orange-100 text-orange-800",
     shipping: "bg-blue-100 text-blue-800",
     delivered: "bg-green-100 text-green-800",
     cancelled: "bg-red-100 text-red-800",
@@ -196,8 +197,24 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                         <InfoRow label="Customer" value={order.tenKhachHang} />
                         <InfoRow label="Phone" value={order.sdt} />
                         <InfoRow label="Address" value={order.diaChi} />
-                        <InfoRow label="Status" value={order.trangThai} />
+                        {orderNeedsCompartment(order.trangThai) && (
+                            <InfoRow
+                                label="Compartment ID"
+                                value={
+                                    order.compartmentId != null
+                                        ? String(order.compartmentId)
+                                        : "— (call POST /api/dcs/deposit-closed with compartment_id to assign)"
+                                }
+                            />
+                        )}
                     </div>
+                    {orderNeedsCompartment(order.trangThai) && orderCompartmentMissing(order) && (
+                        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                            <span className="font-mono">compartment_id</span> is not set yet. Assign it via{" "}
+                            <span className="font-mono">POST /api/dcs/deposit-closed</span> (that call does not change
+                            workflow status).
+                        </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className={order.trangThai === "cancelled" || order.trangThai === "delivered" ? "hidden" : `flex gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={order.trangThai === "pending" && animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>

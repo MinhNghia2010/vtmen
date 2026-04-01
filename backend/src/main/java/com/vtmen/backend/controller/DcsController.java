@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 
@@ -36,7 +37,9 @@ public class DcsController {
                 .orElseGet(() -> ResponseEntity.badRequest().body(QrScannedResponse.reject("Mã QR không hợp lệ hoặc đã bị hủy")));
     }
 
-    // POST /api/dcs/deposit-closed — Đã nạp hàng xong / cửa tủ đóng (DCS gọi vào vtmen)
+    // POST /api/dcs/deposit-closed — Đã nạp hàng xong / cửa tủ đóng (DCS gọi vào vtmen).
+    // Does not change order status. No compartment yet → set compartment + time, message "Placed successfully".
+    // Already has compartment → clear compartment + deposited time, message "Compartment removed".
     @PostMapping("/deposit-closed")
     public ResponseEntity<SimpleResponse> depositClosed(@RequestBody DepositClosedRequest body) {
         if (body == null) {
@@ -47,10 +50,17 @@ public class DcsController {
             return ResponseEntity.badRequest().body(new SimpleResponse(400, "Missing order_id"));
         }
 
-        return orderService.markDeposited(orderCode, body.compartmentId(), body.closedAt())
-                .map(o -> ResponseEntity.ok(new SimpleResponse(200, "Received successfully")))
-                .orElseGet(() -> ResponseEntity.status(404).body(
-                        new SimpleResponse(404, "Order not found or not eligible for deposit")));
+        try {
+            return orderService.applyDepositClosed(orderCode, body.compartmentId(), body.closedAt())
+                    .map(msg -> ResponseEntity.ok(new SimpleResponse(200, msg)))
+                    .orElseGet(() -> ResponseEntity.status(404).body(
+                            new SimpleResponse(404, "Order not found or not eligible for deposit")));
+        } catch (ResponseStatusException ex) {
+            int code = ex.getStatusCode().value();
+            String reason = ex.getReason();
+            return ResponseEntity.status(ex.getStatusCode()).body(
+                    new SimpleResponse(code, reason != null ? reason : "Bad request"));
+        }
     }
 
     // POST /api/dcs/arrival-notify — Báo cáo đến (DCS gọi vào vtmen)

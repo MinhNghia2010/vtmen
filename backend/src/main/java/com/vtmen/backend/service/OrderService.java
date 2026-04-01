@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -108,24 +110,43 @@ public class OrderService {
                 });
     }
 
-    public Optional<OrderModel> markDeposited(String orderCode, Integer compartmentId, OffsetDateTime closedAt) {
-        return orderRepository.findByOrderCode(orderCode)
+    /**
+     * DCS deposit-closed: never changes order status.
+     * If the order has no compartment_id, requires request compartment_id — sets compartment + deposited time, message "Placed successfully".
+     * If the order already has a compartment_id, clears compartment_id and deposited time (locker released).
+     */
+    public Optional<String> applyDepositClosed(String orderCode, Integer requestCompartmentId, OffsetDateTime closedAt) {
+        Optional<OrderModel> eligible = orderRepository.findByOrderCode(orderCode)
                 .filter(order -> order.getStatus() == null
                         || (!"cancelled".equalsIgnoreCase(order.getStatus())
-                        && !"delivered".equalsIgnoreCase(order.getStatus())))
-                .map(order -> {
-                    order.setCompartmentId(compartmentId);
-                    if (closedAt != null) {
-                        order.setDepositedTime(closedAt.toLocalDateTime());
-                    } else {
-                        order.setDepositedTime(LocalDateTime.now());
-                    }
-                    // After deposit, it is now in shipping stage
-                    order.setStatus("shipping");
-                    OrderModel saved = orderRepository.save(order);
-                    publishActiveOrders();
-                    return saved;
-                });
+                        && !"delivered".equalsIgnoreCase(order.getStatus())));
+
+        if (eligible.isEmpty()) {
+            return Optional.empty();
+        }
+
+        OrderModel order = eligible.get();
+
+        if (order.getCompartmentId() == null) {
+            if (requestCompartmentId == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing compartment_id");
+            }
+            order.setCompartmentId(requestCompartmentId);
+            if (closedAt != null) {
+                order.setDepositedTime(closedAt.toLocalDateTime());
+            } else {
+                order.setDepositedTime(LocalDateTime.now());
+            }
+            orderRepository.save(order);
+            publishActiveOrders();
+            return Optional.of("Placed successfully");
+        }
+
+        order.setCompartmentId(null);
+        order.setDepositedTime(null);
+        orderRepository.save(order);
+        publishActiveOrders();
+        return Optional.of("Compartment removed");
     }
 
     public Optional<OrderModel> markArrived(String orderCode, OffsetDateTime arrivalAt) {

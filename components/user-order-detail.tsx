@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MessageCircle, Phone, Package, Clock, MapPin, CheckCircle2, Truck, Send, Box } from "lucide-react";
-import { type Order } from "@/lib/orders";
+import { orderCompartmentMissing, orderNeedsCompartment, type Order } from "@/lib/orders";
 import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
@@ -134,19 +134,53 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                     </div>
 
                     {/* Info Cards */}
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div
+                        className={`grid gap-2.5 ${
+                            orderNeedsCompartment(order.trangThai) ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"
+                        }`}
+                    >
                         {[
                             { icon: Package, value: order.maDonHang, label: "Track ID" },
                             { icon: Box, value: order.soLuong?.toString() || "1", label: "Quantity" },
                             { icon: Clock, value: order.thoiGianDuKien || "N/A", label: "Est. Time" },
+                            ...(orderNeedsCompartment(order.trangThai)
+                                ? [
+                                      {
+                                          icon: Box,
+                                          value:
+                                              order.compartmentId != null
+                                                  ? String(order.compartmentId)
+                                                  : "—",
+                                          label: "compartment_id *",
+                                          warn: orderCompartmentMissing(order),
+                                      },
+                                  ]
+                                : []),
                         ].map((item) => (
-                            <div key={item.label} className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card p-3 shadow-sm">
+                            <div
+                                key={item.label}
+                                className={`flex flex-col items-center gap-1.5 rounded-xl border border-border bg-card p-3 shadow-sm ${"warn" in item && item.warn ? "border-amber-500/60 bg-amber-500/5" : ""}`}
+                            >
                                 <item.icon className="h-4 w-4 text-primary" />
-                                <span className="text-center text-xs font-semibold text-foreground break-all">{item.value}</span>
+                                <span
+                                    className={`text-center text-xs font-semibold break-all ${
+                                        "warn" in item && item.warn ? "text-amber-700 dark:text-amber-400" : "text-foreground"
+                                    }`}
+                                >
+                                    {item.value}
+                                </span>
                                 <span className="text-[10px] text-muted-foreground">{item.label}</span>
                             </div>
                         ))}
                     </div>
+                    {orderNeedsCompartment(order.trangThai) && orderCompartmentMissing(order) && (
+                        <p className="text-xs text-amber-600 dark:text-amber-500">
+                            Trạng thái {order.trangThai === "placed" ? "đã gửi vào tủ" : "đang giao"} cần có mã ngăn tủ. Nếu
+                            đơn đã nạp xong mà chưa thấy số ô, kiểm tra callback{" "}
+                            <span className="font-mono">/api/dcs/deposit-closed</span> (phải gửi{" "}
+                            <span className="font-mono">compartment_id</span>).
+                        </p>
+                    )}
 
                     {/* Timeline */}
                     <div className="space-y-0 pl-1">

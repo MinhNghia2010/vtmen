@@ -12,7 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Truck, Clock, Package, CheckCircle2, XCircle } from "lucide-react"
 
-import { statusLabels, type OrderStatus, type Order } from "@/lib/orders"
+import { orderCompartmentMissing, orderNeedsCompartment, statusLabels, type OrderStatus, type Order } from "@/lib/orders"
 import { useState, useEffect } from "react"
 import { fetchActiveOrders } from "@/lib/api"
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
@@ -118,6 +118,18 @@ export default function OrderCard({ onDataChange }: { onDataChange?: () => void 
                                     <span className="text-muted-foreground">{order.tenKhachHang}</span>
                                 </ItemTitle>
                                 <ItemDescription>{order.sanPham}</ItemDescription>
+                                {orderNeedsCompartment(order.trangThai) && (
+                                    <p
+                                        className={`mt-0.5 text-[11px] font-medium ${
+                                            orderCompartmentMissing(order)
+                                                ? "text-amber-600 dark:text-amber-500"
+                                                : "text-muted-foreground"
+                                        }`}
+                                    >
+                                        compartment_id:{" "}
+                                        {order.compartmentId != null ? order.compartmentId : "— (chưa có)"}
+                                    </p>
+                                )}
                             </ItemContent>
                             <ItemContent className="flex-none text-center">
                                 <Badge variant="outline" className={`gap-1 border-transparent ${statusStyles[order.trangThai]}`}>
