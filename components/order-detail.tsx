@@ -203,7 +203,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                                 value={
                                     order.compartmentId != null
                                         ? String(order.compartmentId)
-                                        : "— (call POST /api/dcs/deposit-closed with compartment_id to assign)"
+                                        : "null"
                                 }
                             />
                         )}
@@ -217,7 +217,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                     )}
 
                     {/* Action Buttons */}
-                    <div className={order.trangThai === "cancelled" || order.trangThai === "delivered" ? "hidden" : `flex gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={order.trangThai === "pending" && animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>
+                    <div className={order.trangThai === "cancelled" || order.trangThai === "delivered" ? "hidden" : `flex flex-wrap gap-2 items-center justify-end ${animationsEnabled ? 'animate-in slide-in-from-bottom-4 duration-200' : ''}`} style={order.trangThai === "pending" && animationsEnabled ? { animationDelay: "350ms", animationFillMode: "both" } : undefined}>
                         {/* Update Order Button */}
                         <Button
                             variant="default"
