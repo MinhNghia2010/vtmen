@@ -1,7 +1,9 @@
 package com.vtmen.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.LocalDateTime;
 
 @Document(collection = "orders")
@@ -13,6 +15,12 @@ public class OrderModel {
     private String fullName;
     private String phone;
     private String address;
+    /** Campus / place name for robot destination (optional; e.g. from location picker). */
+    private String destinationName;
+    /** DCS / Mongo {@code maps} document id this order was created against (JSON {@code map_name}). */
+    @JsonProperty("map_name")
+    @Field("map_name")
+    private String mapName;
     private Integer quantity;
     private String note;
     private String status; // pending, placed, shipping, delivered, cancelled
@@ -66,6 +74,22 @@ public class OrderModel {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
+    }
+
+    public void setDestinationName(String destinationName) {
+        this.destinationName = destinationName;
+    }
+
+    public String getMapName() {
+        return mapName;
+    }
+
+    public void setMapName(String mapName) {
+        this.mapName = mapName;
     }
 
     public Integer getQuantity() {
