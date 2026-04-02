@@ -1,8 +1,0 @@
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/VtmenBackendApplication.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/config/CorsConfig.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/config/WebSocketConfig.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/controller/DcsController.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/controller/OrderController.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/model/OrderModel.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/repository/OrderRepository.java
-/Volumes/Data-Disk D/vt-fake/backend/src/main/java/com/vtmen/backend/service/OrderService.java
