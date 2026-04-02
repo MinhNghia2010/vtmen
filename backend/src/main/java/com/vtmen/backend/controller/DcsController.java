@@ -1,7 +1,10 @@
 package com.vtmen.backend.controller;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vtmen.backend.config.DcsApiProperties;
 import com.vtmen.backend.model.OrderModel;
+import com.vtmen.backend.service.CampusMapService;
+import com.vtmen.backend.service.DcsRemoteLocationsClient;
 import com.vtmen.backend.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,15 @@ public class DcsController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private DcsRemoteLocationsClient dcsRemoteLocationsClient;
+
+    @Autowired
+    private CampusMapService campusMapService;
+
+    @Autowired
+    private DcsApiProperties dcsApiProperties;
 
     // POST /api/dcs/qr-scanned — Robot quét QR thành công (DCS gọi vào vtmen)
     // Returns action ACCEPT_DEPOSIT or REJECT for DCS to act immediately.
@@ -62,6 +74,57 @@ public class DcsController {
                     new SimpleResponse(code, reason != null ? reason : "Bad request"));
         }
     }
+
+    /**
+     * VtMen: fetch DCS map points, refresh destination cache, update every order's {@code destinationName} +
+     * {@code address} when a POI matches.
+     * <p>Optional body: {@code { "map_name": "Other map" }} — otherwise uses {@code vtmen.dcs.map-name}.
+     */
+    @PostMapping("/sync-order-locations-from-dcs")
+    public ResponseEntity<OrderLocationSyncResponse> syncOrderLocationsFromDcs(
+            @RequestBody(required = false) SyncOrderLocationsRequest body
+    ) {
+        try {
+            String mapOverride = body != null ? body.mapName() : null;
+            String mapKey = (mapOverride != null && !mapOverride.isBlank())
+                    ? mapOverride.trim()
+                    : dcsApiProperties.getMapName();
+            var points = dcsRemoteLocationsClient.fetchCampusPoints(mapKey);
+            if (points.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        new OrderLocationSyncResponse(0, 0, 0, "DCS returned no points (check map_name / network)"));
+            }
+            campusMapService.saveOrReplaceFromDcsPoints(mapKey, points);
+
+            if (!mapKey.equals(dcsApiProperties.getMapName())) {
+                return ResponseEntity.ok(new OrderLocationSyncResponse(
+                        points.size(),
+                        0,
+                        0,
+                        "Saved map to Mongo; registry/order sync skipped (not default vtmen.dcs.map-name)"));
+            }
+
+            OrderService.DcsOrderLocationSyncResult r =
+                    orderService.syncOrderDestinationsFromDcsPoints(mapKey, points);
+            return ResponseEntity.ok(new OrderLocationSyncResponse(
+                    r.pointCount(),
+                    r.ordersUpdated(),
+                    r.ordersUnmatched(),
+                    "OK"));
+        } catch (Exception ex) {
+            return ResponseEntity.internalServerError().body(
+                    new OrderLocationSyncResponse(0, 0, 0, ex.getMessage() != null ? ex.getMessage() : "sync failed"));
+        }
+    }
+
+    public record SyncOrderLocationsRequest(@JsonProperty("map_name") String mapName) {}
+
+    public record OrderLocationSyncResponse(
+            int pointCount,
+            int ordersUpdated,
+            int ordersUnmatched,
+            String message
+    ) {}
 
     // POST /api/dcs/arrival-notify — Báo cáo đến (DCS gọi vào vtmen)
     @PostMapping("/arrival-notify")
