@@ -27,6 +27,7 @@ public class VtmenBackendApplication {
             }
 
             LocalDateTime t0 = LocalDateTime.of(2025, 3, 5, 9, 15);
+            final String demoMap = "Trường đại học";
 
             OrderModel o1 = new OrderModel();
             o1.setOrderCode("SK11AA22BB");
@@ -39,6 +40,7 @@ public class VtmenBackendApplication {
             o1.setCreatedTime(t0);
             o1.setCompartmentId(3);
             o1.setDepositedTime(t0.plusHours(2));
+            o1.setMapName(demoMap);
             orderRepository.save(o1);
 
             OrderModel o2 = new OrderModel();
@@ -50,6 +52,7 @@ public class VtmenBackendApplication {
             o2.setNote("Samsung Galaxy S24 Ultra");
             o2.setStatus("placed");
             o2.setCreatedTime(t0.plusDays(1).plusHours(3));
+            o2.setMapName(demoMap);
             orderRepository.save(o2);
 
             OrderModel o3 = new OrderModel();
@@ -64,6 +67,7 @@ public class VtmenBackendApplication {
             o3.setCompletedTime(t0.plusDays(2).plusDays(1));
             o3.setCompartmentId(7);
             o3.setDepositedTime(t0.plusDays(2).plusHours(5));
+            o3.setMapName(demoMap);
             orderRepository.save(o3);
 
             OrderModel o4 = new OrderModel();
@@ -78,6 +82,7 @@ public class VtmenBackendApplication {
             o4.setCompletedTime(t0.plusDays(4).plusHours(9));
             o4.setCompartmentId(2);
             o4.setDepositedTime(t0.plusDays(3).plusHours(14));
+            o4.setMapName(demoMap);
             orderRepository.save(o4);
 
             OrderModel o5 = new OrderModel();
@@ -102,6 +107,7 @@ public class VtmenBackendApplication {
             o6.setCreatedTime(t0.plusDays(5));
             o6.setCompartmentId(11);
             o6.setDepositedTime(t0.plusDays(5).plusHours(4));
+            o6.setMapName(demoMap);
             orderRepository.save(o6);
 
             OrderModel o7 = new OrderModel();
@@ -113,6 +119,7 @@ public class VtmenBackendApplication {
             o7.setNote("Sony WH-1000XM5");
             o7.setStatus("pending");
             o7.setCreatedTime(t0.plusDays(6).plusHours(8));
+            o7.setMapName(demoMap);
             orderRepository.save(o7);
 
             OrderModel o8 = new OrderModel();
@@ -124,6 +131,7 @@ public class VtmenBackendApplication {
             o8.setNote("Apple Watch Ultra 2");
             o8.setStatus("placed");
             o8.setCreatedTime(t0.plusDays(7));
+            o8.setMapName(demoMap);
             orderRepository.save(o8);
 
             OrderModel o9 = new OrderModel();
@@ -135,6 +143,7 @@ public class VtmenBackendApplication {
             o9.setNote("Xiaomi 14 Ultra");
             o9.setStatus("cancelled");
             o9.setCreatedTime(t0.plusDays(8).plusHours(13));
+            o9.setMapName(demoMap);
             orderRepository.save(o9);
 
             OrderModel o10 = new OrderModel();
@@ -146,6 +155,7 @@ public class VtmenBackendApplication {
             o10.setNote("Logitech MX Master 3S");
             o10.setStatus("pending");
             o10.setCreatedTime(t0.plusDays(9).plusHours(15));
+            o10.setMapName(demoMap);
             orderRepository.save(o10);
 
             OrderModel o11 = new OrderModel();
@@ -160,6 +170,7 @@ public class VtmenBackendApplication {
             o11.setCompletedTime(t0.plusDays(11).plusHours(10));
             o11.setCompartmentId(5);
             o11.setDepositedTime(t0.plusDays(10).plusHours(6));
+            o11.setMapName(demoMap);
             orderRepository.save(o11);
 
             OrderModel o12 = new OrderModel();
@@ -173,6 +184,7 @@ public class VtmenBackendApplication {
             o12.setCreatedTime(t0.plusDays(11).plusHours(9));
             o12.setCompartmentId(9);
             o12.setDepositedTime(t0.plusDays(11).plusHours(11));
+            o12.setMapName(demoMap);
             orderRepository.save(o12);
         };
     }
