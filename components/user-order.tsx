@@ -8,6 +8,7 @@ import {
     Clock,
     XCircle,
     Send,
+    Loader2,
 } from "lucide-react";
 import {
     Item,
@@ -21,7 +22,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { orderCompartmentMissing, orderNeedsCompartment, statusLabels, type Order, type OrderStatus } from "@/lib/orders";
-import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
+import { dispatchRobot, fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
+import { toast } from "sonner";
+import {
+    dispatchSuccess,
+    userToastError,
+    userToastSuccess,
+    userToastWarn,
+} from "@/lib/user-toast-styles";
 import { useState, useEffect } from "react";
 import { useScrollRestoration } from "@/hooks/use-scroll-restoration";
 import { useOrdersWebSocket } from "@/hooks/use-orders-websocket";
@@ -58,21 +66,43 @@ function getStatusBadgeStyle(status: OrderStatus) {
 
 import { useAnimations } from "@/contexts/animation-context";
 
-function OrderCardItem({ order, index, animate }: { order: Order; index: number; animate: boolean }) {
-    const handleCallDelivery = (e: React.MouseEvent) => {
+function OrderCardItem({
+    order,
+    index,
+    animate,
+    callShipLoading,
+    setCallShipLoading,
+}: {
+    order: Order;
+    index: number;
+    animate: boolean;
+    callShipLoading: string | null;
+    setCallShipLoading: (id: string | null) => void;
+}) {
+    const busy = callShipLoading === order.maDonHang;
+
+    const handleCallDelivery = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        const info = {
-            maDonHang: order.maDonHang,
-            tenKhachHang: order.tenKhachHang,
-            sdt: order.sdt,
-            diaChi: order.diaChi,
-            sanPham: order.sanPham,
-        };
-        alert(
-            `🚀 Gọi giao hàng!\n\nĐơn: ${info.maDonHang}\nKhách: ${info.tenKhachHang}\nSĐT: ${info.sdt}\nĐịa chỉ: ${info.diaChi}\nSản phẩm: ${info.sanPham}\n\n→ Đã gửi lệnh cho robot!`
-        );
-        console.log("📦 Robot delivery command sent:", info);
+        if (orderCompartmentMissing(order)) {
+            toast.error("Chưa có mã ngăn tủ. Vui lòng đợi sau khi đóng tủ.", userToastWarn);
+            return;
+        }
+        setCallShipLoading(order.maDonHang);
+        try {
+            const result = await dispatchRobot(order.maDonHang, {});
+            toast.success(
+                dispatchSuccess(order, result.estimated_time_of_arrival),
+                userToastSuccess
+            );
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Không gọi được giao hàng",
+                userToastError
+            );
+        } finally {
+            setCallShipLoading(null);
+        }
     };
 
     return (
@@ -105,8 +135,8 @@ function OrderCardItem({ order, index, animate }: { order: Order; index: number;
                             }`}
                         >
                             {order.compartmentId != null
-                                ? `compartment_id: ${order.compartmentId}`
-                                : "compartment_id — bắt buộc, chưa có (gọi deposit-closed để gán)"}
+                                ? `Compartment ID: ${order.compartmentId}`
+                                : "Compartment ID: null"}
                         </p>
                     )}
                 </ItemContent>
@@ -125,9 +155,10 @@ function OrderCardItem({ order, index, animate }: { order: Order; index: number;
                         <Button
                             className="w-full gap-2"
                             size="lg"
+                            disabled={busy || orderCompartmentMissing(order)}
                             onClick={handleCallDelivery}
                         >
-                            <Send className="h-4 w-4" />
+                            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                             Gọi giao hàng
                         </Button>
                     )}
@@ -158,6 +189,7 @@ export default function UserOrderList() {
     const { animationsEnabled } = useAnimations();
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [callShipLoading, setCallShipLoading] = useState<string | null>(null);
 
     // Initial fetch
     useEffect(() => {
@@ -206,7 +238,14 @@ export default function UserOrderList() {
                     </div>
                 ) : (
                     orders.map((order, idx) => (
-                        <OrderCardItem key={order.maDonHang} order={order} index={idx} animate={animationsEnabled} />
+                        <OrderCardItem
+                            key={order.maDonHang}
+                            order={order}
+                            index={idx}
+                            animate={animationsEnabled}
+                            callShipLoading={callShipLoading}
+                            setCallShipLoading={setCallShipLoading}
+                        />
                     ))
                 )}
             </ItemGroup>
