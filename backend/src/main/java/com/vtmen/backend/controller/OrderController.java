@@ -2,6 +2,9 @@ package com.vtmen.backend.controller;
 
 import com.vtmen.backend.model.OrderModel;
 import com.vtmen.backend.service.OrderService;
+import com.vtmen.backend.service.RobotDispatchService;
+import com.vtmen.backend.service.RobotDispatchService.DispatchRobotRequest;
+import com.vtmen.backend.service.RobotDispatchService.DispatchRobotResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,9 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private RobotDispatchService robotDispatchService;
 
     // GET /api/orders/active — Active orders (non-delivered, non-cancelled)
     @GetMapping("/active")
@@ -111,6 +117,15 @@ public class OrderController {
         return orderService.updateOrderStatusPendingToPlaced(orderCode)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // POST /api/orders/{orderCode}/dispatch-robot — Call DCS sendtask; on SUCCESS → shipping
+    @PostMapping("/{orderCode}/dispatch-robot")
+    public ResponseEntity<DispatchRobotResult> dispatchRobot(
+            @PathVariable String orderCode,
+            @RequestBody(required = false) DispatchRobotRequest body
+    ) {
+        return ResponseEntity.ok(robotDispatchService.dispatchPlacedOrder(orderCode, body));
     }
 
     // POST /api/orders/{id}/complete — Mark order as delivered
