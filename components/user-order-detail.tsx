@@ -1,9 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageCircle, Phone, Package, Clock, MapPin, CheckCircle2, Truck, Send, Box } from "lucide-react";
+import { ArrowLeft, MessageCircle, Phone, Package, Clock, CheckCircle2, Truck, Send, Box, Loader2 } from "lucide-react";
 import { orderCompartmentMissing, orderNeedsCompartment, type Order } from "@/lib/orders";
-import { fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
+import { dispatchRobot, fetchActiveOrders, fetchOrderHistory } from "@/lib/api";
+import { useOrdersWebSocket } from "@/hooks/use-orders-websocket";
+import { toast } from "sonner";
+import {
+    dispatchSuccess,
+    userToastError,
+    userToastSuccess,
+    userToastWarn,
+} from "@/lib/user-toast-styles";
 import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { useSwipeBack } from "@/hooks/use-swipe-back";
@@ -33,6 +41,7 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
     const [showQR, setShowQR] = useState(false);
+    const [callShipLoading, setCallShipLoading] = useState(false);
 
     useEffect(() => {
         async function loadOrder() {
@@ -61,12 +70,35 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
         loadOrder();
     }, [orderId, animationsEnabled]);
 
-    const handleCallDelivery = () => {
+    useOrdersWebSocket((updatedOrders) => {
+        const found = updatedOrders.find((o) => o.maDonHang === orderId);
+        if (found) setOrder(found);
+    });
+
+    const handleCallDelivery = async () => {
         if (!order) return;
-        alert(
-            `🚀 Gọi giao hàng!\n\nĐơn: ${order.maDonHang}\nKhách: ${order.tenKhachHang}\nSĐT: ${order.sdt}\nĐịa chỉ: ${order.diaChi}\nSản phẩm: ${order.sanPham}\n\n→ Đã gửi lệnh cho robot!`
-        );
-        console.log("📦 Robot delivery command sent:", order);
+        if (orderCompartmentMissing(order)) {
+            toast.error(
+                "Chưa có mã ngăn tủ. Vui lòng đợi hệ thống xác nhận sau khi đóng tủ.",
+                userToastWarn
+            );
+            return;
+        }
+        setCallShipLoading(true);
+        try {
+            const result = await dispatchRobot(order.maDonHang, {});
+            toast.success(
+                dispatchSuccess(order, result.estimated_time_of_arrival),
+                userToastSuccess
+            );
+        } catch (e) {
+            toast.error(
+                e instanceof Error ? e.message : "Không gọi được giao hàng",
+                userToastError
+            );
+        } finally {
+            setCallShipLoading(false);
+        }
     };
 
     return (
@@ -136,11 +168,10 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                     {/* Info Cards */}
                     <div
                         className={`grid gap-2.5 ${
-                            orderNeedsCompartment(order.trangThai) ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"
+                            orderNeedsCompartment(order.trangThai) ? "grid-cols-3" : "grid-cols-2"
                         }`}
                     >
                         {[
-                            { icon: Package, value: order.maDonHang, label: "Track ID" },
                             { icon: Box, value: order.soLuong?.toString() || "1", label: "Quantity" },
                             { icon: Clock, value: order.thoiGianDuKien || "N/A", label: "Est. Time" },
                             ...(orderNeedsCompartment(order.trangThai)
@@ -151,7 +182,7 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                                               order.compartmentId != null
                                                   ? String(order.compartmentId)
                                                   : "—",
-                                          label: "compartment_id *",
+                                          label: "Compartment ID",
                                           warn: orderCompartmentMissing(order),
                                       },
                                   ]
@@ -251,10 +282,16 @@ export default function UserOrderDetail({ orderId }: { orderId: string }) {
                                 <>
                                     {order.trangThai === "placed" && (
                                         <button
-                                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98]"
+                                            type="button"
+                                            disabled={callShipLoading || orderCompartmentMissing(order)}
+                                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
                                             onClick={handleCallDelivery}
                                         >
-                                            <Send className="h-4 w-4" />
+                                            {callShipLoading ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Send className="h-4 w-4" />
+                                            )}
                                             Gọi giao hàng
                                         </button>
                                     )}
