@@ -126,8 +126,8 @@ export default function OrderCard({ onDataChange }: { onDataChange?: () => void 
                                                 : "text-muted-foreground"
                                         }`}
                                     >
-                                        compartment_id:{" "}
-                                        {order.compartmentId != null ? order.compartmentId : "— (chưa có)"}
+                                        Compartment ID:{" "}
+                                        {order.compartmentId != null ? order.compartmentId : "null"}
                                     </p>
                                 )}
                             </ItemContent>
