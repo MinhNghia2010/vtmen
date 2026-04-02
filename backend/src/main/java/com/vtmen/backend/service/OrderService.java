@@ -1,5 +1,6 @@
 package com.vtmen.backend.service;
 
+import com.vtmen.backend.config.DcsApiProperties;
 import com.vtmen.backend.model.OrderModel;
 import com.vtmen.backend.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +31,12 @@ public class OrderService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private DcsDestinationRegistry dcsDestinationRegistry;
+
+    @Autowired
+    private DcsApiProperties dcsApiProperties;
 
     // Get order by orderCode
     public Optional<OrderModel> getOrderByOrderCode(String orderCode) {
@@ -166,6 +174,18 @@ public class OrderService {
                 });
     }
 
+    /** After DCS accepts sendtask (SUCCESS), move placed → shipping. */
+    public Optional<OrderModel> markOrderShipping(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> "placed".equalsIgnoreCase(order.getStatus()))
+                .map(order -> {
+                    order.setStatus("shipping");
+                    OrderModel saved = orderRepository.save(order);
+                    publishActiveOrders();
+                    return saved;
+                });
+    }
+
     // Complete an order
     public void completeOrder(String id) {
         orderRepository.findByOrderCode(id).ifPresent(order -> {
@@ -207,6 +227,11 @@ public class OrderService {
         if (order.getStatus() == null || order.getStatus().isEmpty()) {
             order.setStatus("pending");
         }
+        if (order.getMapName() == null || order.getMapName().isBlank()) {
+            order.setMapName(dcsApiProperties.getMapName());
+        } else {
+            order.setMapName(order.getMapName().trim());
+        }
         order.setOrderCode("SK" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8).toUpperCase());
         OrderModel saved = orderRepository.save(order);
         publishActiveOrders();
@@ -219,6 +244,14 @@ public class OrderService {
             if (updates.getFullName() != null) order.setFullName(updates.getFullName());
             if (updates.getPhone() != null) order.setPhone(updates.getPhone());
             if (updates.getAddress() != null) order.setAddress(updates.getAddress());
+            if (updates.getDestinationName() != null) {
+                String d = updates.getDestinationName().trim();
+                order.setDestinationName(d.isEmpty() ? null : d);
+            }
+            if (updates.getMapName() != null) {
+                String m = updates.getMapName().trim();
+                order.setMapName(m.isEmpty() ? null : m);
+            }
             if (updates.getQuantity() != null) order.setQuantity(updates.getQuantity());
             if (updates.getNote() != null) order.setNote(updates.getNote());
             OrderModel saved = orderRepository.save(order);
@@ -239,6 +272,72 @@ public class OrderService {
     // Get all orders
     public List<OrderModel> getAllOrders() {
         return orderRepository.findAll();
+    }
+
+    public record DcsOrderLocationSyncResult(int pointCount, int ordersUpdated, int ordersUnmatched) {}
+
+    /**
+     * Refresh {@link DcsDestinationRegistry} from DCS points and rewrite each order's
+     * {@link OrderModel#getDestinationName()} + {@link OrderModel#getAddress()} when a POI matches.
+     * When {@code mapName} is set, matching orders also get {@link OrderModel#setMapName(String)}.
+     */
+    public DcsOrderLocationSyncResult syncOrderDestinationsFromDcsPoints(String mapName, List<DcsCampusPoint> points) {
+        if (points == null || points.isEmpty()) {
+            return new DcsOrderLocationSyncResult(0, 0, 0);
+        }
+        dcsDestinationRegistry.applyFromRemotePoints(points);
+        String mapStamp = (mapName != null && !mapName.isBlank()) ? mapName.trim() : null;
+        int updated = 0;
+        int unmatched = 0;
+        for (OrderModel o : orderRepository.findAll()) {
+            Optional<DcsCampusPoint> match = matchOrderToPoint(o, points);
+            if (match.isEmpty()) {
+                unmatched++;
+                continue;
+            }
+            DcsCampusPoint p = match.get();
+            boolean changed = false;
+            if (!Objects.equals(o.getDestinationName(), p.name()) || !Objects.equals(o.getAddress(), p.address())) {
+                o.setDestinationName(p.name());
+                o.setAddress(p.address());
+                changed = true;
+            }
+            if (mapStamp != null && !Objects.equals(o.getMapName(), mapStamp)) {
+                o.setMapName(mapStamp);
+                changed = true;
+            }
+            if (changed) {
+                orderRepository.save(o);
+                updated++;
+            }
+        }
+        publishActiveOrders();
+        return new DcsOrderLocationSyncResult(points.size(), updated, unmatched);
+    }
+
+    private static Optional<DcsCampusPoint> matchOrderToPoint(OrderModel o, List<DcsCampusPoint> points) {
+        String od = o.getDestinationName() != null ? DcsDestinationRegistry.nfc(o.getDestinationName()) : "";
+        String oa = o.getAddress() != null ? DcsDestinationRegistry.nfc(o.getAddress()) : "";
+
+        if (!od.isEmpty()) {
+            for (DcsCampusPoint p : points) {
+                if (DcsDestinationRegistry.nfc(p.name()).equals(od)) {
+                    return Optional.of(p);
+                }
+            }
+        }
+        for (DcsCampusPoint p : points) {
+            if (!oa.isEmpty() && DcsDestinationRegistry.nfc(p.address()).equals(oa)) {
+                return Optional.of(p);
+            }
+        }
+        for (DcsCampusPoint p : points) {
+            String pa = DcsDestinationRegistry.nfc(p.address());
+            if (pa.length() >= 8 && !oa.isEmpty() && (oa.contains(pa) || pa.contains(oa))) {
+                return Optional.of(p);
+            }
+        }
+        return Optional.empty();
     }
 
     private void publishActiveOrders() {
