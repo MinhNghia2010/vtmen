@@ -118,6 +118,28 @@ public class OrderService {
                 });
     }
 
+    public record QrPickupResult(String orderCode, Integer compartmentId) {}
+
+    /**
+     * Pickup scan flow:
+     * - Only for shipping orders that already have a compartment.
+     * - Return orderCode + compartmentId for DCS open-compartment action.
+     * - Then mark order delivered and clear compartment.
+     */
+    public Optional<QrPickupResult> completePickupByQr(String orderCode) {
+        return orderRepository.findByOrderCode(orderCode)
+                .filter(order -> "shipping".equalsIgnoreCase(order.getStatus()) && order.getCompartmentId() != null)
+                .map(order -> {
+                    Integer openingCompartmentId = order.getCompartmentId();
+                    order.setStatus("delivered");
+                    order.setCompartmentId(null);
+                    order.setCompletedTime(LocalDateTime.now());
+                    orderRepository.save(order);
+                    publishActiveOrders();
+                    return new QrPickupResult(order.getOrderCode(), openingCompartmentId);
+                });
+    }
+
     /**
      * DCS deposit-closed: never changes order status.
      * If the order has no compartment_id, requires request compartment_id — sets compartment + deposited time, message "Placed successfully".

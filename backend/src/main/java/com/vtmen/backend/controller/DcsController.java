@@ -44,6 +44,16 @@ public class DcsController {
             return ResponseEntity.badRequest().body(QrScannedResponse.reject("Missing qr_content"));
         }
 
+        // Pickup flow: shipping + has compartment => tell DCS which compartment to open,
+        // then order is updated to delivered and compartment is cleared.
+        var pickupResult = orderService.completePickupByQr(orderCode);
+        if (pickupResult.isPresent()) {
+            return ResponseEntity.ok(QrScannedResponse.pickUpResponse(
+                    pickupResult.get().orderCode(),
+                    pickupResult.get().compartmentId()
+            ));
+        }
+
         return orderService.acceptDepositByQr(orderCode)
                 .map(order -> ResponseEntity.ok(QrScannedResponse.accept(order)))
                 .orElseGet(() -> ResponseEntity.badRequest().body(QrScannedResponse.reject("Mã QR không hợp lệ hoặc đã bị hủy")));
@@ -184,13 +194,13 @@ public class DcsController {
             );
         }
 
-        static QrScannedResponse pickUpResponse(OrderModel order) {
+        static QrScannedResponse pickUpResponse(String orderCode, Integer compartmentId) {
             return new QrScannedResponse(
                 200,
-                "ACCEPT_DEPOSIT",
-                order.getOrderCode(),
-                order.getCompartmentId(),
-                "Mã QR hợp lệ, cho phép cất hàng"
+                "OPEN_COMPARTMENT",
+                orderCode,
+                compartmentId,
+                "Mã QR hợp lệ, mở tủ để nhận hàng"
         );
         }
     }
