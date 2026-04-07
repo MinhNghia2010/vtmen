@@ -2,7 +2,7 @@ package com.vtmen.backend.service;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** One POI from DCS {@code /api/dcs/locations} {@code data.points[]}. */
+// One POI from DCS {@code /api/dcs/locations} {@code data.points[]}.
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record DcsCampusPoint(
         String name,

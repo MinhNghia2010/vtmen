@@ -12,10 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * In-memory index of canonical {@code name} → {@code address} for sendtask.
- * Loaded from Mongo via {@link CampusMapService} at startup; refreshed after DCS sync pulls.
- */
+ // In-memory index of canonical {@code name} → {@code address} for sendtask.
+ // Loaded from Mongo via {@link CampusMapService} at startup; refreshed after DCS sync pulls.
 @Component
 @DependsOn("campusMapService")
 public class DcsDestinationRegistry {
@@ -35,7 +33,7 @@ public class DcsDestinationRegistry {
         reloadFromMongo();
     }
 
-    /** Reload default configured map from {@link CampusMapService} (Mongo {@code maps}). */
+    // Reload default configured map from {@link CampusMapService} (Mongo {@code maps}).
     public synchronized void reloadFromMongo() {
         List<DcsCampusPoint> pts = campusMapService.getDcsPoints(dcsApiProperties.getMapName());
         applyFromRemotePoints(pts);
@@ -52,9 +50,7 @@ public class DcsDestinationRegistry {
         byNormName.put(nfc(name), new Result(name, address));
     }
 
-    /**
-     * Replace registry from DCS / API points (non-empty list only).
-     */
+     // Replace registry from DCS / API points (non-empty list only).
     public synchronized void applyFromRemotePoints(List<DcsCampusPoint> remote) {
         if (remote == null || remote.isEmpty()) {
             return;

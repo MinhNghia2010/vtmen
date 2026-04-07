@@ -14,10 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * Read campus POIs from Mongo {@code maps} (fed by DCS sync or seed).
- */
+ // Read campus POIs from Mongo {@code maps} (fed by DCS sync or seed).
 @RestController
 @RequestMapping("/api/maps")
 public class MapController {
@@ -32,12 +29,9 @@ public class MapController {
     public List<String> mapNames() {
         return campusMapService.listMapNames();
     }
-
-    /**
-     * Live DCS map POIs (server POSTs to {@code vtmen.dcs.locations-url} with {@code map_name}).
-     * Response shape matches DCS: {@code status}, {@code message}, {@code data.total_items}, {@code data.points[]}
-     * ({@code name}, {@code address}, {@code coordinates.lng/lat}, {@code status}).
-     */
+     // Live DCS map POIs (server POSTs to {@code vtmen.dcs.locations-url} with {@code map_name}).
+     // Response shape matches DCS: {@code status}, {@code message}, {@code data.total_items}, {@code data.points[]}
+     // ({@code name}, {@code address}, {@code coordinates.lng/lat}, {@code status}).
     @GetMapping("/dcs")
     public ResponseEntity<DcsLocationsApiDtos.LocationsEnvelope> dcsLive(
             @RequestParam(value = "map_name", required = false) String mapName

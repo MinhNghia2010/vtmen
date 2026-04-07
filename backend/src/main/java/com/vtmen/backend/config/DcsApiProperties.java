@@ -7,10 +7,10 @@ public class DcsApiProperties {
 
     private String locationsUrl = "http://223.130.11.193:10101/api/dcs/locations";
 
-    /** Request body field for POST locations. */
+    // Request body field for POST locations.
     private String mapName = "Trường đại học";
 
-    /** When true, run DCS location fetch and order rewrite once after the app starts. */
+    // When true, run DCS location fetch and order rewrite once after the app starts.
     private boolean syncOrdersOnStartup = false;
 
     public String getLocationsUrl() {

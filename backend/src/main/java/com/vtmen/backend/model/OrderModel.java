@@ -15,9 +15,9 @@ public class OrderModel {
     private String fullName;
     private String phone;
     private String address;
-    /** Campus / place name for robot destination (optional; e.g. from location picker). */
+    // Campus / place name for robot destination (optional; e.g. from location picker).
     private String destinationName;
-    /** DCS / Mongo {@code maps} document id this order was created against (JSON {@code map_name}). */
+    // DCS / Mongo {@code maps} document id this order was created against (JSON {@code map_name}).
     @JsonProperty("map_name")
     @Field("map_name")
     private String mapName;

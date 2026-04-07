@@ -84,12 +84,9 @@ public class DcsController {
                     new SimpleResponse(code, reason != null ? reason : "Bad request"));
         }
     }
-
-    /**
-     * VtMen: fetch DCS map points, refresh destination cache, update every order's {@code destinationName} +
-     * {@code address} when a POI matches.
-     * <p>Optional body: {@code { "map_name": "Other map" }} — otherwise uses {@code vtmen.dcs.map-name}.
-     */
+     // VtMen: fetch DCS map points, refresh destination cache, update every order's {@code destinationName} +
+     // {@code address} when a POI matches.
+     // <p>Optional body: {@code { "map_name": "Other map" }} — otherwise uses {@code vtmen.dcs.map-name}.
     @PostMapping("/sync-order-locations-from-dcs")
     public ResponseEntity<OrderLocationSyncResponse> syncOrderLocationsFromDcs(
             @RequestBody(required = false) SyncOrderLocationsRequest body

@@ -22,17 +22,11 @@ public class DcsRemoteLocationsClient {
 
     @Autowired
     private DcsApiProperties dcsApiProperties;
-
-    /**
-     * POST {@code /api/dcs/locations} using {@link com.vtmen.backend.config.DcsApiProperties#getMapName()}.
-     */
+     // POST {@code /api/dcs/locations} using {@link com.vtmen.backend.config.DcsApiProperties#getMapName()}.
     public List<DcsCampusPoint> fetchCampusPoints() {
         return fetchCampusPoints(null);
     }
-
-    /**
-     * Raw DCS response (same JSON shape as DCS), for {@code GET /api/maps/dcs}.
-     */
+     // Raw DCS response (same JSON shape as DCS), for {@code GET /api/maps/dcs}.
     public DcsLocationsApiDtos.LocationsEnvelope fetchLocationsEnvelope(String mapName) {
         String resolved = (mapName != null && !mapName.isBlank())
                 ? mapName.trim()
@@ -47,12 +41,8 @@ public class DcsRemoteLocationsClient {
                 .toEntity(DcsLocationsApiDtos.LocationsEnvelope.class);
         return entity.getBody();
     }
-
-    /**
-     * POST {@code /api/dcs/locations} with a specific {@code map_name}. DCS may return a different POI set per map.
-     *
-     * @param mapName DCS map id; if null or blank, uses the configured default ({@code vtmen.dcs.map-name}).
-     */
+     // POST {@code /api/dcs/locations} with a specific {@code map_name}. DCS may return a different POI set per map.
+     // @param mapName DCS map id; if null or blank, uses the configured default ({@code vtmen.dcs.map-name}).
     public List<DcsCampusPoint> fetchCampusPoints(String mapName) {
         try {
             DcsLocationsApiDtos.LocationsEnvelope env = fetchLocationsEnvelope(mapName);

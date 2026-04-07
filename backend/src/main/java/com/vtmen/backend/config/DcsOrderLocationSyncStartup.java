@@ -10,10 +10,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-/**
- * Optional: after the app is ready, pull DCS locations and align all Mongo orders (see {@code vtmen.dcs.sync-orders-on-startup}).
- */
+ // Optional: after the app is ready, pull DCS locations and align all Mongo orders (see {@code vtmen.dcs.sync-orders-on-startup}).
 @Component
 @Order(Integer.MAX_VALUE)
 public class DcsOrderLocationSyncStartup implements ApplicationRunner {

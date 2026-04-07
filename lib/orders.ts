@@ -11,13 +11,13 @@ export type Order = {
     tenKhachHang: string;
     sdt: string;
     diaChi: string;
-    /** POI / campus name for robot (from backend `destinationName`) */
+    // POI / campus name for robot (from backend `destinationName`)
     destinationName?: string;
     trangThai: OrderStatus;
     ngayGui: string;
     thoiGianDuKien: string;
     soLuong?: number; // Added new field for quantity
-    /** Set when DCS reports deposit closed; required for placed/shipping UX */
+    // Set when DCS reports deposit closed; required for placed/shipping UX
     compartmentId?: number | null;
 };
 

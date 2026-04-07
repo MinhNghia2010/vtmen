@@ -12,15 +12,13 @@ import {
 import { getFallbackMapPoints } from "@/lib/locations";
 
 export type UseMapLocationsOptions = {
-    /** Mongo / DCS map id; defaults to {@link DEFAULT_DCS_MAP_NAME}. */
+    // Mongo / DCS map id; defaults to {@link DEFAULT_DCS_MAP_NAME}.
     mapName?: string;
-    /** When false, no request runs (e.g. drawer closed). */
+    // When false, no request runs (e.g. drawer closed).
     enabled?: boolean;
 };
 
-/**
- * Tries live DCS data ({@code GET /api/maps/dcs}), then Mongo ({@code /maps/points}), then {@link getFallbackMapPoints}.
- */
+// Tries live DCS data ({@code GET /api/maps/dcs}), then Mongo ({@code /maps/points}), then {@link getFallbackMapPoints}.
 export function useMapLocations(options: UseMapLocationsOptions = {}) {
     const mapName = options.mapName ?? DEFAULT_DCS_MAP_NAME;
     const enabled = options.enabled ?? true;
@@ -46,7 +44,7 @@ export function useMapLocations(options: UseMapLocationsOptions = {}) {
                         return;
                     }
                 } catch {
-                    /* DCS proxy unreachable or 502 — try Mongo */
+                    // DCS proxy unreachable or 502 — try Mongo
                 }
                 try {
                     const fromMongo = await fetchMapPoints(mapName);
@@ -55,7 +53,7 @@ export function useMapLocations(options: UseMapLocationsOptions = {}) {
                         return;
                     }
                 } catch {
-                    /* Mongo failed */
+                    // Mongo failed
                 }
                 if (!cancelled) {
                     const fb = getFallbackMapPoints(mapName);

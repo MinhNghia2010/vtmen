@@ -10,7 +10,7 @@ import java.util.List;
 @Document(collection = "maps")
 public class CampusMapModel {
 
-    /** Same value DCS uses in {@code map_name} (e.g. "Trường đại học"). */
+    // Same value DCS uses in {@code map_name} (e.g. "Trường đại học").
     @Id
     private String mapName;
 

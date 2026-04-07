@@ -20,7 +20,7 @@ import java.util.Optional;
 @Service
 public class RobotDispatchService {
 
-    /** Explicit UTF-8 so DCS receives correct Vietnamese in destination.name (avoid server defaulting to Latin-1). */
+    // Explicit UTF-8 so DCS receives correct Vietnamese in destination.name (avoid server defaulting to Latin-1).
     private static final MediaType APPLICATION_JSON_UTF8 =
             new MediaType("application", "json", StandardCharsets.UTF_8);
 
@@ -38,15 +38,12 @@ public class RobotDispatchService {
 
     @Autowired
     private DcsDestinationRegistry dcsDestinationRegistry;
-
-    /**
-     * POST sendtask to DCS; on SUCCESS marks order {@code shipping}.
-     * <p>
-     * The JSON sent to DCS is built from the saved order: {@code order_id} = {@link OrderModel#getOrderCode()},
-     * {@code compartment_id} from the order, {@code destination.address_text} from {@link OrderModel#getAddress()},
-     * {@code destination.name} from {@link OrderModel#getDestinationName()} if set, else config default.
-     * Optional {@link DispatchRobotRequest} only overrides {@code robot_id} and destination fields when provided.
-     */
+     // POST sendtask to DCS; on SUCCESS marks order {@code shipping}.
+     // <p>
+     // The JSON sent to DCS is built from the saved order: {@code order_id} = {@link OrderModel#getOrderCode()},
+     // {@code compartment_id} from the order, {@code destination.address_text} from {@link OrderModel#getAddress()},
+     // {@code destination.name} from {@link OrderModel#getDestinationName()} if set, else config default.
+     // Optional {@link DispatchRobotRequest} only overrides {@code robot_id} and destination fields when provided.
     public DispatchRobotResult dispatchPlacedOrder(String orderCode, DispatchRobotRequest request) {
         DispatchRobotRequest req = request != null ? request : new DispatchRobotRequest(null, null);
 

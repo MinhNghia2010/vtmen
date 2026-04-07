@@ -1,8 +1,5 @@
 package com.vtmen.backend.model;
-
-/**
- * One POI stored inside {@link CampusMapModel#points}.
- */
+ // One POI stored inside {@link CampusMapModel#points}.
 public class CampusMapPointEmbedded {
 
     private String name;

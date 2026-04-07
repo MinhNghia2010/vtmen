@@ -118,15 +118,10 @@ public class OrderService {
                 });
     }
 
-    public record QrPickupResult(String orderCode, Integer compartmentId) {}
-
-    /**
-     * Pickup scan flow:
-     * - Only for shipping orders that already have a compartment.
-     * - Return orderCode + compartmentId for DCS open-compartment action.
-     * - Then mark order delivered and clear compartment.
-     */
-    public Optional<QrPickupResult> completePickupByQr(String orderCode) {
+    public record QrPickupResult(String orderCode, Integer compartmentId) {}     // Pickup scan flow:
+     // - Only for shipping orders that already have a compartment.
+     // - Return orderCode + compartmentId for DCS open-compartment action.
+     // - Then mark order delivered and clear compartment.    public Optional<QrPickupResult> completePickupByQr(String orderCode) {
         return orderRepository.findByOrderCode(orderCode)
                 .filter(order -> "shipping".equalsIgnoreCase(order.getStatus()) && order.getCompartmentId() != null)
                 .map(order -> {
@@ -138,14 +133,9 @@ public class OrderService {
                     publishActiveOrders();
                     return new QrPickupResult(order.getOrderCode(), openingCompartmentId);
                 });
-    }
-
-    /**
-     * DCS deposit-closed: never changes order status.
-     * If the order has no compartment_id, requires request compartment_id — sets compartment + deposited time, message "Placed successfully".
-     * If the order already has a compartment_id, clears compartment_id and deposited time (locker released).
-     */
-    public Optional<String> applyDepositClosed(String orderCode, Integer requestCompartmentId, OffsetDateTime closedAt) {
+    }     // DCS deposit-closed: never changes order status.
+     // If the order has no compartment_id, requires request compartment_id — sets compartment + deposited time, message "Placed successfully".
+     // If the order already has a compartment_id, clears compartment_id and deposited time (locker released).    public Optional<String> applyDepositClosed(String orderCode, Integer requestCompartmentId, OffsetDateTime closedAt) {
         Optional<OrderModel> eligible = orderRepository.findByOrderCode(orderCode)
                 .filter(order -> order.getStatus() == null
                         || (!"cancelled".equalsIgnoreCase(order.getStatus())
@@ -196,7 +186,7 @@ public class OrderService {
                 });
     }
 
-    /** After DCS accepts sendtask (SUCCESS), move placed → shipping. */
+    // After DCS accepts sendtask (SUCCESS), move placed → shipping.
     public Optional<OrderModel> markOrderShipping(String orderCode) {
         return orderRepository.findByOrderCode(orderCode)
                 .filter(order -> "placed".equalsIgnoreCase(order.getStatus()))
@@ -296,14 +286,9 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public record DcsOrderLocationSyncResult(int pointCount, int ordersUpdated, int ordersUnmatched) {}
-
-    /**
-     * Refresh {@link DcsDestinationRegistry} from DCS points and rewrite each order's
-     * {@link OrderModel#getDestinationName()} + {@link OrderModel#getAddress()} when a POI matches.
-     * When {@code mapName} is set, matching orders also get {@link OrderModel#setMapName(String)}.
-     */
-    public DcsOrderLocationSyncResult syncOrderDestinationsFromDcsPoints(String mapName, List<DcsCampusPoint> points) {
+    public record DcsOrderLocationSyncResult(int pointCount, int ordersUpdated, int ordersUnmatched) {}     // Refresh {@link DcsDestinationRegistry} from DCS points and rewrite each order's
+     // {@link OrderModel#getDestinationName()} + {@link OrderModel#getAddress()} when a POI matches.
+     // When {@code mapName} is set, matching orders also get {@link OrderModel#setMapName(String)}.    public DcsOrderLocationSyncResult syncOrderDestinationsFromDcsPoints(String mapName, List<DcsCampusPoint> points) {
         if (points == null || points.isEmpty()) {
             return new DcsOrderLocationSyncResult(0, 0, 0);
         }

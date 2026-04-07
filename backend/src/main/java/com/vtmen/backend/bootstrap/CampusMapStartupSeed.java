@@ -9,10 +9,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-/**
- * After Mongo is up: fill {@code maps} from catalog / DCS when empty, then refresh {@link DcsDestinationRegistry}.
- */
+ // After Mongo is up: fill {@code maps} from catalog / DCS when empty, then refresh {@link DcsDestinationRegistry}.
 @Component
 @Order(0)
 public class CampusMapStartupSeed implements ApplicationRunner {

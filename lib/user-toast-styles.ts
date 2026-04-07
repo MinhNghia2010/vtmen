@@ -1,4 +1,4 @@
-/** Match Postman `update-order-drawer` Sonner styling */
+// Match Postman `update-order-drawer` Sonner styling
 export const userToastSuccess = { className: "!text-blue-500 !border-blue-600" };
 export const userToastWarn = { className: "!text-yellow-500 !border-yellow-600" };
 export const userToastError = { className: "!text-orange-500 !border-orange-600" };

@@ -9,11 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-/**
- * Static POI seeds for maps that should exist in Mongo before the first DCS sync.
- * Add an entry per map name (must match {@code vtmen.dcs.map-name} or other keys you sync under).
- */
+ // Static POI seeds for maps that should exist in Mongo before the first DCS sync.
+ // Add an entry per map name (must match {@code vtmen.dcs.map-name} or other keys you sync under).
 public final class CampusMapSeedCatalog {
 
     private static final Map<String, List<CampusMapPointEmbedded>> BY_MAP_NAME;
@@ -26,16 +23,12 @@ public final class CampusMapSeedCatalog {
 
     private CampusMapSeedCatalog() {}
 
-    /** Map names that have bundled static POIs (see {@link #embeddedPointsForMap}). */
+    // Map names that have bundled static POIs (see {@link #embeddedPointsForMap}).
     public static Set<String> knownSeedMapKeys() {
         return Collections.unmodifiableSet(BY_MAP_NAME.keySet());
     }
-
-    /**
-     * Points to insert when Mongo has no document for {@code mapName} and startup seeding runs.
-     *
-     * @return empty if this map has no bundled seed (e.g. DCS-only map).
-     */
+     // Points to insert when Mongo has no document for {@code mapName} and startup seeding runs.
+     // @return empty if this map has no bundled seed (e.g. DCS-only map).
     public static Optional<List<CampusMapPointEmbedded>> embeddedPointsForMap(String mapName) {
         if (mapName == null || mapName.isBlank()) {
             return Optional.empty();
@@ -44,7 +37,7 @@ public final class CampusMapSeedCatalog {
         return pts == null ? Optional.empty() : Optional.of(pts);
     }
 
-    /** Matches default {@code vtmen.dcs.map-name} and prior DCS catalog. */
+    // Matches default {@code vtmen.dcs.map-name} and prior DCS catalog.
     private static List<CampusMapPointEmbedded> truongDaiHocCampusPoints() {
         List<CampusMapPointEmbedded> list = new ArrayList<>();
         add(list, "Đại học Bách Khoa Hà Nội", "1 Đại Cồ Việt, Hai Bà Trưng");

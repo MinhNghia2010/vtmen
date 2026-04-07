@@ -1,9 +1,9 @@
 import type { MapLocationPoint } from "./api";
 
-/** Must match backend `vtmen.dcs.map-name` and `CampusMapSeedCatalog`. */
+// Must match backend `vtmen.dcs.map-name` and `CampusMapSeedCatalog`.
 export const FALLBACK_CAMPUS_MAP_NAME = "Trường đại học";
 
-/** Same POIs as {@code CampusMapSeedCatalog} — used when API has no points or is unreachable. */
+// Same POIs as {@code CampusMapSeedCatalog} — used when API has no points or is unreachable.
 const TRUONG_DAI_HOC_ROWS: readonly { name: string; address: string }[] = [
     { name: "Đại học Bách Khoa Hà Nội", address: "1 Đại Cồ Việt, Hai Bà Trưng" },
     { name: "Đại học Thủy Lợi", address: "175 Tây Sơn, Đống Đa" },

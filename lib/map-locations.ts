@@ -1,6 +1,4 @@
-/**
- * Map POIs: live DCS via {@link fetchDcsMapLocations}, Mongo {@link fetchMapPoints}, static {@link ./locations.ts}.
- */
+// Map POIs: live DCS via {@link fetchDcsMapLocations}, Mongo {@link fetchMapPoints}, static {@link ./locations.ts}.
 export {
     DEFAULT_DCS_MAP_NAME,
     fetchMapPoints,

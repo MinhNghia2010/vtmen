@@ -29,11 +29,9 @@ public class CampusMapService {
 
     @Autowired
     private DcsRemoteLocationsClient dcsRemoteLocationsClient;
-
-    /**
-     * If {@code maps} has no usable POIs: seed from {@link CampusMapSeedCatalog}, then try DCS for
-     * {@code vtmen.dcs.map-name}. Safe to run on every startup (idempotent).
-     */
+    
+     // If {@code maps} has no usable POIs: seed from {@link CampusMapSeedCatalog}, then try DCS for
+     // {@code vtmen.dcs.map-name}. Safe to run on every startup (idempotent)
     public void seedMapsIfDatabaseEmpty() {
         for (String mapKey : CampusMapSeedCatalog.knownSeedMapKeys()) {
             seedCatalogMapIfNeeded(mapKey);
@@ -102,7 +100,7 @@ public class CampusMapService {
                 .collect(Collectors.toList());
     }
 
-    /** Replace one map with points from DCS (or any source). */
+    // Replace one map with points from DCS (or any source).
     public void saveOrReplaceFromDcsPoints(String mapName, List<DcsCampusPoint> points) {
         if (mapName == null || mapName.isBlank() || points == null || points.isEmpty()) {
             return;

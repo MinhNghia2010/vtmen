@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/** Wire format for DCS POST {@code /api/dcs/locations} (and our GET proxy {@code /api/maps/dcs}). */
+// Wire format for DCS POST {@code /api/dcs/locations} (and our GET proxy {@code /api/maps/dcs}).
 public final class DcsLocationsApiDtos {
     private DcsLocationsApiDtos() {}
 

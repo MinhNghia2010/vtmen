@@ -11,12 +11,12 @@ export type BackendOrder = {
     note: string;
     status: string;
     orderCode: string;
-    /** Campus / place label for robot destination.name when saved from location picker */
+    // Campus / place label for robot destination.name when saved from location picker
     destinationName?: string | null;
-    /** Mongo `maps` key / DCS map id for this order */
+    // Mongo `maps` key / DCS map id for this order
     map_name?: string | null;
     compartmentId?: number | null;
-    /** Some JSON stacks may serialize as snake_case */
+    // Some JSON stacks may serialize as snake_case
     compartment_id?: number | null;
 };
 
@@ -48,13 +48,13 @@ export function mapBackendOrderToFrontend(b: BackendOrder): Order {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 
-/** Must match backend `vtmen.dcs.map-name` for the default campus map document in Mongo `maps`. */
+// Must match backend `vtmen.dcs.map-name` for the default campus map document in Mongo `maps`.
 export const DEFAULT_DCS_MAP_NAME =
     process.env.NEXT_PUBLIC_DCS_MAP_NAME || "Trường đại học";
 
 export type MapLocationPoint = { id: number; name: string; address: string };
 
-/** Same shape as DCS POST `/api/dcs/locations` (via backend `GET /api/maps/dcs`). */
+// Same shape as DCS POST `/api/dcs/locations` (via backend `GET /api/maps/dcs`).
 export type DcsMapCoordinates = { lng?: number; lat?: number };
 export type DcsMapPoint = {
     name: string;
@@ -77,7 +77,7 @@ function mapQuery(mapName?: string): string {
         : `?map_name=${encodeURIComponent(DEFAULT_DCS_MAP_NAME)}`;
 }
 
-/** Live DCS POIs: Spring POSTs to DCS with `{ map_name }` and returns the same JSON envelope. */
+// Live DCS POIs: Spring POSTs to DCS with `{ map_name }` and returns the same JSON envelope.
 export async function fetchDcsMapLocations(mapName?: string): Promise<DcsLocationsEnvelope> {
     const url = `${API_BASE}/maps/dcs${mapQuery(mapName)}`;
     const res = await fetch(url, { cache: "no-store" });
@@ -87,7 +87,7 @@ export async function fetchDcsMapLocations(mapName?: string): Promise<DcsLocatio
     return res.json();
 }
 
-/** Maps DCS-style points to picker rows (coordinates kept on raw envelope if you need them later). */
+// Maps DCS-style points to picker rows (coordinates kept on raw envelope if you need them later).
 export function dcsEnvelopeToMapPoints(env: DcsLocationsEnvelope): MapLocationPoint[] {
     const raw = env?.data?.points;
     if (!raw?.length) return [];
@@ -102,7 +102,7 @@ export function dcsEnvelopeToMapPoints(env: DcsLocationsEnvelope): MapLocationPo
     return out;
 }
 
-/** POIs from Mongo `maps` collection (seed or DCS sync). */
+// POIs from Mongo `maps` collection (seed or DCS sync).
 export async function fetchMapPoints(mapName?: string): Promise<MapLocationPoint[]> {
     const url = `${API_BASE}/maps/points${mapQuery(mapName)}`;
     const res = await fetch(url, { cache: "no-store" });
@@ -227,7 +227,7 @@ export type DispatchRobotResponse = {
     estimated_time_of_arrival?: number;
 };
 
-/** Calls backend → DCS sendtaskVtMen; backend sets order to shipping on SUCCESS. */
+// Calls backend → DCS sendtaskVtMen; backend sets order to shipping on SUCCESS.
 export async function dispatchRobot(
     orderCode: string,
     payload?: DispatchRobotPayload
@@ -254,7 +254,7 @@ export async function dispatchRobot(
                 }
             }
         } catch {
-            /* keep statusText */
+            // keep statusText
         }
         throw new Error(detail);
     }
