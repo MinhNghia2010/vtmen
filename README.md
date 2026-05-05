@@ -27,18 +27,6 @@ The backend expects a MongoDB connection string. In `backend/src/main/resources/
 
 Other backend settings (ports, DCS URLs, `notify.backend.url`, etc.) live in the same `application.properties` file.
 
-### Frontend — API and WebSocket (optional for local default)
-
-Create **`.env.local`** in the project root if the backend is not at `http://localhost:8080`:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8080/api
-NEXT_PUBLIC_WS_URL=http://localhost:8080
-NEXT_PUBLIC_DCS_MAP_NAME=Trường đại học
-```
-
-If you omit these, the app defaults to `http://localhost:8080/api` for REST and you should set `NEXT_PUBLIC_WS_URL` when the Next dev server runs on port **3000** and the WebSocket server is on **8080** (see `document.txt` for a longer handoff guide).
-
 ## Run the project
 
 1. **Start MongoDB** (local service or Atlas with network access allowed).
