@@ -49,13 +49,6 @@ Other backend settings (ports, DCS URLs, `notify.backend.url`, etc.) live in the
 
 4. Open **http://localhost:3000** in the browser.
 
-### Production-style frontend build
-
-```bash
-npm run build
-npm start
-```
-
 ## Scripts (frontend)
 
 | Command | Description |
